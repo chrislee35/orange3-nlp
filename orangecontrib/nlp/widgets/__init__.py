@@ -11,7 +11,7 @@ DESCRIPTION = "NLP Widgets"
 
 ICON = "icons/nlp-orange.svg"
 PRIORITY = 1000
-BACKGROUND = "#a8cd6e" # Apple Green
+BACKGROUND = "#0BC8CE" # Robin egg blue
 
 WIDGET_HELP_PATH = (
 # Used for development.

@@ -2,7 +2,8 @@ from AnyQt.QtWidgets import QLabel, QProgressBar, QVBoxLayout, QRadioButton, QBu
 from AnyQt.QtCore import QThread, pyqtSignal
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
-from Orange.data import Table, Domain, StringVariable
+from Orange.data import StringVariable
+from orangecontrib.text.corpus import Corpus
 import numpy as np
 import json
 import requests
@@ -123,16 +124,16 @@ class OllamaWorker(NERWorker):
 
 
 class OWNERWidget(widget.OWWidget):
-    name = "Ollama Named Entity Recognition"
+    name = "Named Entity Recognition"
     description = "Uses selected NER framework to extract named entities."
-    icon = "icons/text.svg"
+    icon = "icons/nlp-ner.svg"
     priority = 120
 
     class Inputs:
-        data = Input("Corpus", Table)
+        data = Input("Corpus", Corpus)
 
     class Outputs:
-        data = Output("Corpus with Entities", Table)
+        data = Output("Corpus with Entities", Corpus)
 
     want_main_area = False
 
@@ -199,8 +200,7 @@ class OWNERWidget(widget.OWWidget):
             self.infoLabel.setText("No text attribute found.")
             self.Outputs.data.send(None)
             return
-
-        texts = self.corpus.get_column(text_var)[0]
+        texts = self.corpus.documents
         framework = self.frameworks[self.selected_framework]
 
         if framework == "NLTK":
@@ -231,7 +231,6 @@ class OWNERWidget(widget.OWWidget):
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
     import random
-    from orangecontrib.text.corpus import Corpus
 
     full_corpus = Corpus("election-tweets-2016")
     indices = random.sample(range(len(full_corpus)), 10)
