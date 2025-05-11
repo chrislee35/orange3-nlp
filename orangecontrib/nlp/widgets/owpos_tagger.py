@@ -6,7 +6,7 @@ from Orange.data import StringVariable
 from orangecontrib.text.corpus import Corpus
 import numpy as np
 import json
-
+from orangecontrib.nlp.util import SpaCyDownloader, UDPipeDownloader
 
 class POSWorker(QThread):
     progress = pyqtSignal(int)
@@ -27,11 +27,15 @@ class POSWorker(QThread):
 class SpaCyPOSWorker(POSWorker):
     def run(self):
         import spacy
+        model_name = SpaCyDownloader.model_name(self.language)
         try:
-            nlp = spacy.load(f"{self.language}_core_web_sm")
+            nlp = spacy.load(model_name)
         except OSError:
-            self.result.emit([json.dumps({"error": f"spaCy model for '{self.language}' not found."}) for _ in self.texts])
-            return
+            if not SpaCyDownloader.download(model_name):
+                self.result.emit([json.dumps({"error": f"spaCy model for '{self.language}' not found."}) for _ in self.texts])
+                return
+            nlp = spacy.load(model_name)
+
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:
@@ -85,8 +89,14 @@ class UDPipePOSWorker(POSWorker):
 
         model_path = f"{self.language}.udpipe"
         if not os.path.exists(model_path):
-            self.result.emit([json.dumps({"error": f"UDPipe model '{model_path}' not found."}) for _ in self.texts])
-            return
+            self.progress.emit(1)
+            # Attempt to download model from the standard UDPipe model repository
+            if UDPipeDownloader.download(self.language):
+                self.progress.emit(10)
+            else:
+                err = f"Failed to download UDPipe model for language {self.language}"
+                self.result.emit([json.dumps({"error": err}) for _ in self.texts])
+                return
 
         model = Model.load(model_path)
         pipeline = Pipeline(model, 'tokenize', Pipeline.DEFAULT, Pipeline.DEFAULT, 'conllu')

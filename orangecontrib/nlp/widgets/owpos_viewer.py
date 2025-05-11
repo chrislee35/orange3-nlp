@@ -1,4 +1,4 @@
-from AnyQt.QtWidgets import QLabel, QVBoxLayout, QSizePolicy, QWidget, QTableWidget, QTableWidgetItem
+from AnyQt.QtWidgets import QLabel, QVBoxLayout, QSizePolicy, QWidget, QTableWidget, QTableWidgetItem, QHeaderView
 from AnyQt.QtCore import Qt
 from Orange.widgets import widget
 from Orange.widgets.widget import Input
@@ -7,6 +7,7 @@ import json
 import spacy
 from spacy import displacy
 from PyQt5.QtWebEngineWidgets import QWebEngineView
+from orangecontrib.nlp.util import SpaCyDownloader
 
 
 class OWPOSViewer(widget.OWWidget):
@@ -36,22 +37,24 @@ class OWPOSViewer(widget.OWWidget):
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
-        self.table.setMaximumHeight(400)
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Stretch)
+        self.controlArea.layout().setContentsMargins(0, 0, 0, 0)
+        self.controlArea.layout().setSpacing(0)
         self.controlArea.layout().addWidget(self.table)
         self.table.itemSelectionChanged.connect(self.on_selection_changed)
 
     def layout_main_area(self):
         self.webview = QWebEngineView(self)
         self.webview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.webview.setAutoFillBackground(True)
+        palette = self.palette()
+        bg_color = palette.window().color().name()
 
-        main_widget = QWidget()
-        layout = QVBoxLayout()
+        layout = self.mainArea.layout()
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
         layout.addWidget(self.webview, stretch=1)
-        main_widget.setLayout(layout)
-        self.mainArea.layout().addWidget(main_widget)
 
     @Inputs.data
     def set_data(self, data):
@@ -66,10 +69,10 @@ class OWPOSViewer(widget.OWWidget):
             return
 
         text_var = self.corpus.text_features[0]
-        num_rows = min(20, len(self.corpus))
+        num_rows = min(30, len(self.corpus))
         self.table.setRowCount(num_rows)
         for i in range(num_rows):
-            text = str(self.corpus[i][text_var])[:20]
+            text = str(self.corpus[i][text_var])
             item = QTableWidgetItem(text)
             self.table.setItem(i, 0, item)
         self.table.selectRow(0)
@@ -86,11 +89,14 @@ class OWPOSViewer(widget.OWWidget):
             return
 
         # Load spaCy English model
+        model_name = SpaCyDownloader.model_name(self.corpus.language)
         try:
-            nlp = spacy.load(f"{self.corpus.language}_core_web_sm")
+            nlp = spacy.load(model_name)
         except OSError:
-            self.webview.setHtml(f"<h3>spaCy {self.corpus.language} model not found.</h3>")
-            return
+            if not SpaCyDownloader.download(model_name):
+                self.webview.setHtml(f"<h3>spaCy {self.corpus.language} model not found.</h3>")
+                return
+            nlp = space.load(model_name)
 
         # Find the POS Tags column
         pos_column = None
@@ -121,11 +127,37 @@ class OWPOSViewer(widget.OWWidget):
             token.dep_ = deps[i]
             token.head = doc[heads[i]] if 0 <= heads[i] < len(doc) else token
 
-        options = {"compact": True, "bg": "#09a3d5",
-           "color": "white", "font": "Source Sans Pro"}
+        
+        palette = self.palette()
+        bg_color = palette.window().color().name()
+        fg_color = palette.windowText().color().name()
 
-        html = displacy.render(doc, style="dep", page=True, options=options)
-        self.webview.setHtml(html)
+        
+
+        options = {"compact": True, "bg": bg_color, "color": fg_color, "font": "Source Sans Pro"}
+        html = displacy.render(doc, style="dep", page=False, options=options)
+        styled_html = f'''
+<html>
+<head>
+  <style>
+    body {{
+      background-color: {bg_color};
+      color: {fg_color};
+      margin: 0;
+      padding: 10px;
+      font: Source Sans Pro;
+    }}
+    .displacy-word, .displacy-arrow {{
+      color: {fg_color};
+    }}
+  </style>
+</head>
+<body>
+  {html}
+</body>
+</html>
+'''
+        self.webview.setHtml(styled_html)
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
