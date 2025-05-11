@@ -13,7 +13,7 @@ from orangecontrib.nlp.util import SpaCyDownloader
 class OWPOSViewer(widget.OWWidget):
     name = "POS Viewer"
     description = "Visualize part-of-speech tags and dependency parses."
-    icon = "icons/nlp-pos-visualizer.svg"
+    icon = "icons/nlp-pos-viewer.svg"
     priority = 140
 
     class Inputs:
