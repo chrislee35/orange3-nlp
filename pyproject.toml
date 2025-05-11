@@ -26,7 +26,9 @@ dependencies = [
     "spacy >= 3.8.5",
     "flair >= 0.15.1",
     "nltk >= 3.9.1",
-    "numpy == 1.26.4"
+    "numpy == 1.26.4",
+    "sumy >= 0.11.0",
+    "summa >= 1.2.0"
 ]
 
 [license]
