@@ -165,6 +165,7 @@ class OWReferenceLibrary(widget.OWWidget):
     max_excerpts = settings.Setting(5)
     threshold = settings.Setting(0.0)
     chunk_size = settings.Setting(256)
+    query = settings.Setting("")
 
     def __init__(self):
         super().__init__()
@@ -203,7 +204,7 @@ class OWReferenceLibrary(widget.OWWidget):
         self.threshold_spin.setValue(self.threshold)
         self.threshold_spin.valueChanged.connect(self.on_threshold_change)
         self.controlArea.layout().addWidget(self.threshold_spin)
-        
+
         chunk_size_label = QLabel("Chunk size:")
         chunk_size_label.setToolTip("Controls the size of the excerpts that are indexed and returned.")
         self.controlArea.layout().addWidget(chunk_size_label)
@@ -277,8 +278,8 @@ class OWReferenceLibrary(widget.OWWidget):
 
         self.stop_worker()
 
-        query = self.query_input.text()
-        self.worker = SearchWorker(query, self.vector_db, top_k=self.max_excerpts)
+        self.query = self.query_input.text()
+        self.worker = SearchWorker(self.query, self.vector_db, top_k=self.max_excerpts)
         self.worker.progress.connect(self.progressBar.setValue)
         self.worker.result.connect(self.display_results)
         self.progressBar.setValue(0)
@@ -287,14 +288,14 @@ class OWReferenceLibrary(widget.OWWidget):
     def display_results(self, results):
         excerpt_var = StringVariable("excerpt")
         score_var = StringVariable("score")
-        metas = list(self.corpus.domain.metas) + [excerpt_var, score_var]
+        metas = [excerpt_var, score_var]
 
         new_rows = []
         for text, meta_idx, score in results:
             if score < self.threshold:
                 continue
-            original = self.corpus[int(meta_idx)]
-            new_metas = np.concatenate([original.metas, [text, f"{score:.4f}"]])
+            #original = self.corpus[int(meta_idx)]
+            new_metas = [text, f"{score:.4f}"]
             new_rows.append(new_metas)
 
         if not new_rows:
@@ -307,6 +308,8 @@ class OWReferenceLibrary(widget.OWWidget):
         table = Table.from_numpy(domain, X=np.empty((len(new_rows), 0)), metas=metas_array)
 
         new_corpus: Corpus = Corpus.from_table(domain, table)
+        new_corpus.attributes['language'] = self.corpus.attributes['language']
+        new_corpus.set_text_features([new_corpus.columns.excerpt])
 
         self.results_display.setPlainText("\n---\n".join([f"{r[0]}\n(Similarity: {r[2]:.4f})" for r in results if r[2] >= self.threshold]))
         self.Outputs.data.send(new_corpus)
