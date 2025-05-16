@@ -58,7 +58,7 @@ class OllamaWorker(QThread):
 class OWOllamaRAG(widget.OWWidget):
     name = "Ollama RAG"
     description = "Send RAG prompt to an Ollama model."
-    icon = "icons/nlp-ollama.svg"
+    icon = "icons/nlp-rag.svg"
     priority = 160
 
     class Inputs:
