@@ -10,6 +10,15 @@ Within the Add-ons installer, click on "Add more..." and type in orange3-nlp
 
 ![Canvas with all 8 widgets provided by the Orange3-NLP package](imgs/nlp-widget-lineup.png)
 
+* Abstractive Summary
+* Extractive Summary
+* Named Entity Recognition
+* POS Tagger
+* POS Viewer
+* Question Answering
+* Reference Library
+* Ollama RAG
+
 ### Summary Widgets
 
 - **Extractive Summary**: Selects and joins key sentences or phrases from the original text.
