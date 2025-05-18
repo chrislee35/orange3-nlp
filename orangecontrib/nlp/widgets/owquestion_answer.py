@@ -1,4 +1,4 @@
-from AnyQt.QtWidgets import QLabel, QProgressBar, QVBoxLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QCheckBox, QTextEdit, QTableWidget, QHeaderView, QTableWidgetItem
+from AnyQt.QtWidgets import QLabel, QVBoxLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QCheckBox, QTextEdit, QTableWidget, QHeaderView, QTableWidgetItem
 from AnyQt.QtCore import QThread, pyqtSignal, Qt
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
@@ -94,10 +94,6 @@ class OWQuestionAnswer(widget.OWWidget):
         self.answer_box.setReadOnly(True)
         self.mainArea.layout().addWidget(self.answer_box)
 
-        self.progressBar = QProgressBar(self)
-        self.progressBar.setValue(0)
-        self.mainArea.layout().addWidget(self.progressBar)
-
     def on_checkbox_change(self):
         self.all_documents = self.all_docs_checkbox.isChecked()
         if self.corpus and self.question:
@@ -143,15 +139,15 @@ class OWQuestionAnswer(widget.OWWidget):
         language = getattr(self.corpus, "language", "en") or "en"
         texts = self.corpus.documents if self.all_documents else [self.corpus.documents[self.current_row]]
 
+        self.progressBarInit()
         self.worker = QuestionAnswerWorker(texts, self.question, language)
-        self.worker.progress.connect(self.progressBar.setValue)
+        self.worker.progress.connect(self.progressBarSet)
         self.worker.results.connect(self.show_answer)
-        self.progressBar.setValue(0)
         self.worker.start()
 
     def show_answer(self, answers):
         self.answer_box.setPlainText("\n".join(answers[0:20]))
-        self.progressBar.setValue(100)
+        self.progressBarFinished()
 
         # Add answer to corpus as a new column
         answer_var = StringVariable("Answer")

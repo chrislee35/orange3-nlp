@@ -1,6 +1,6 @@
 from AnyQt.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QComboBox,
-    QLabel, QTextEdit, QProgressBar, QSpinBox, QDoubleSpinBox
+    QLabel, QTextEdit, QSpinBox, QDoubleSpinBox
 )
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
 from Orange.widgets import widget, settings
@@ -37,7 +37,7 @@ class EmbedderFactory:
         elif name == "sentence-transformers":
             if EmbedderFactory._sbert_model is None:
                 EmbedderFactory._sbert_model = SentenceTransformer("all-MiniLM-L6-v2")
-            return lambda texts: EmbedderFactory._sbert_model.encode(texts, convert_to_numpy=True, normalize_embeddings=True)
+            return lambda texts: EmbedderFactory._sbert_model.encode(texts, convert_to_numpy=True, normalize_embeddings=True, show_progress_bar=False)
         elif name == "e5-small-v2":
             if EmbedderFactory._hf_model is None:
                 EmbedderFactory._hf_tokenizer = AutoTokenizer.from_pretrained("intfloat/e5-small-v2")
@@ -68,40 +68,53 @@ class EmbedderFactory:
         else:
             raise ValueError("Unknown embedder")
 
+class VectorDB(QThread):
+    result = pyqtSignal(object)  # emits the built VectorDB
+    progress = pyqtSignal(int)     # emits progress (0-100)
 
-class VectorDB:
-    def __init__(self, embed_func, chunk_size: int=256, progress_callback=None):
-        self.texts = []
-        self.metadata = []
+    def __init__(self, texts, metadata, embed_func, chunk_size: int=256):
+        super().__init__()
+        self.texts = texts
+        self.metadata = metadata
+        self.chunks = []
+        self.metadata_idx = []
         self.index = None
         self.embed_func = embed_func
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size = chunk_size,
             chunk_overlap  = int(chunk_size * 0.1)
         )
-        self.progress_callback = progress_callback
 
-    def build_index(self, texts, metadata):
-        self.texts = []
-        self.metadata = []
-        total = len(texts)
-        for idx, text in enumerate(texts):
+    def calculate_progress(self, part, whole, startpercent: int = 0, endpercent: int = 100) -> int:
+        return int((part / whole)*(endpercent - startpercent) + startpercent)
+
+    def run(self):
+        self.metadata_idx = []
+        total = len(self.texts)
+        last_progress = 0
+        for idx, text in enumerate(self.texts):
             chunks = self.text_splitter.split_text(text)
-            self.texts.extend(chunks)
-            self.metadata.extend([idx] * len(chunks))
-            if self.progress_callback:
-                self.progress_callback(int((idx + 1) / total * 20))
-
+            self.chunks.extend(chunks)
+            self.metadata_idx.extend([idx] * len(chunks))
+            progress = self.calculate_progress(idx+1, total, 0, 20)
+            if progress > last_progress:
+                self.progress.emit(progress)
+                last_progress = progress
+        
         batch_size = 32  # You can adjust this based on memory/performance
         vectors = []
 
-        total_batches = (len(self.texts) + batch_size - 1) // batch_size
-        for i in range(0, len(self.texts), batch_size):
-            batch = self.texts[i:i + batch_size]
+        total_batches = (len(self.chunks) + batch_size - 1) // batch_size
+        idx = 0
+        for i in range(0, len(self.chunks), batch_size):
+            batch = self.chunks[i:i + batch_size]
             vecs = self.embed_func(batch)
             vectors.append(vecs)
-            if self.progress_callback:
-                self.progress_callback(20 + int(70 * (i + batch_size) / len(self.texts)))  # up to 90%
+            progress = self.calculate_progress(idx+1, total_batches, 20, 98)
+            idx += 1
+            if progress > last_progress:
+                self.progress.emit(progress)
+                last_progress = progress
 
         vectors = np.vstack(vectors)
         faiss.normalize_L2(vectors)
@@ -110,14 +123,17 @@ class VectorDB:
         
         batch_size = 256
         num_vectors = vectors.shape[0]
+        total_batches = (num_vectors + batch_size - 1) // batch_size
+        idx = 0
         for i in range(0, num_vectors, batch_size):
             self.index.add(vectors[i:i + batch_size])
-            if self.progress_callback:
-                progress = 90 + int((i + batch_size) / num_vectors * 10)
-                self.progress_callback(min(progress, 99))
+            progress = self.calculate_progress(idx+1, total_batches, 98, 100)
+            idx += 1
+            if progress > last_progress:
+                self.progress.emit(progress)
+                last_progress = progress
 
-        if self.progress_callback:
-            self.progress_callback(100)
+        self.result.emit(self.index)
 
     def search(self, query, top_k=5):
         if self.index is None:
@@ -125,7 +141,7 @@ class VectorDB:
         query_vec = self.embed_func([query])
         faiss.normalize_L2(query_vec)
         D, I = self.index.search(query_vec, top_k)
-        return [(self.texts[i], self.metadata[i], float(D[0][j])) for j, i in enumerate(I[0]) if i < len(self.texts)]
+        return [(self.texts[i], self.metadata[self.metadata_idx[i]], float(D[0][j])) for j, i in enumerate(I[0]) if i < len(self.texts)]
 
 class SearchWorker(QThread):
     result = pyqtSignal(list)
@@ -232,18 +248,13 @@ class OWReferenceLibrary(widget.OWWidget):
         buttons_layout.addWidget(self.stop_button)
         self.mainArea.layout().addLayout(buttons_layout)
 
-        self.progressBar = QProgressBar()
-        self.mainArea.layout().addWidget(self.progressBar)
-
         self.results_display = QTextEdit()
         self.results_display.setReadOnly(True)
         self.mainArea.layout().addWidget(self.results_display)
 
     def on_embedder_change(self, text):
         self.embedder = text
-        self.vector_db = VectorDB(EmbedderFactory.get_embedder(text), self.chunk_size, self.progressBar.setValue)
-        if self.corpus:
-            self.vector_db.build_index(self.corpus.documents, list(range(len(self.corpus))))
+        self.build_vector_db()
 
     def on_max_excerpts_change(self, val):
         self.max_excerpts = val
@@ -253,24 +264,37 @@ class OWReferenceLibrary(widget.OWWidget):
 
     def on_chunk_size_change(self, val):
         self.chunk_size = int(val)
-        if self.corpus and self.embedder:
-            self.vector_db = VectorDB(EmbedderFactory.get_embedder(self.embedder), self.chunk_size, self.progressBar.setValue)
-            self.vector_db.build_index(self.corpus.documents, list(range(len(self.corpus))))
+        self.build_vector_db()
 
     @Inputs.data
     def set_data(self, data):
         self.corpus = data
-        if data:
-            embed_func = EmbedderFactory.get_embedder(self.embedder)
-            self.vector_db = VectorDB(embed_func, self.chunk_size, self.progressBar.setValue)
-            texts = data.documents
-            metadata = list(range(len(data)))
-            self.vector_db.build_index(texts, metadata)
+        self.build_vector_db()
+
+    def build_vector_db(self):
+        if not (self.corpus and self.embedder):
+            return
+        embed_func = EmbedderFactory.get_embedder(self.embedder)
+        texts = self.corpus.documents
+        metadata = list(range(len(self.corpus)))
+        self.vector_db = VectorDB(texts, metadata, embed_func, self.chunk_size)
+        self.worker = self.vector_db
+        self.progressBarInit()
+        self.worker.progress.connect(self.update_progress)
+        self.worker.result.connect(self.finish_vector_db_indexing)
+        self.worker.start()
+
+    def update_progress(self, value):
+        self.progressBarSet(value)
+
+    def finish_vector_db_indexing(self, index: object):
+        self.progressBarFinished()
 
     def stop_worker(self):
         if self.worker and self.worker.isRunning():
             self.worker.cancel()
             self.worker.wait()
+            self.progressBarInit()
 
     def find_references(self):
         if not self.corpus or not self.query_input.text():
@@ -278,11 +302,11 @@ class OWReferenceLibrary(widget.OWWidget):
 
         self.stop_worker()
 
+        self.progressBarInit()
         self.query = self.query_input.text()
         self.worker = SearchWorker(self.query, self.vector_db, top_k=self.max_excerpts)
-        self.worker.progress.connect(self.progressBar.setValue)
+        self.worker.progress.connect(self.update_progress)
         self.worker.result.connect(self.display_results)
-        self.progressBar.setValue(0)
         self.worker.start()
 
     def display_results(self, results):

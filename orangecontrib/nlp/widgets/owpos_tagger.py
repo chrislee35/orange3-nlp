@@ -1,4 +1,4 @@
-from AnyQt.QtWidgets import QLabel, QProgressBar, QVBoxLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QComboBox, QWidget, QGridLayout
+from AnyQt.QtWidgets import QLabel, QVBoxLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QComboBox, QWidget, QGridLayout
 from AnyQt.QtCore import QThread, pyqtSignal, Qt
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
@@ -160,10 +160,6 @@ class OWPOSTagger(widget.OWWidget):
         self.infoLabel = QLabel("No data on input yet.", self)
         self.layout().addWidget(self.infoLabel)
 
-        self.progressBar = QProgressBar(self)
-        self.progressBar.setValue(0)
-        self.layout().addWidget(self.progressBar)
-
         self.worker = None
 
     def select_framework(self, index):
@@ -178,7 +174,7 @@ class OWPOSTagger(widget.OWWidget):
             self.worker.cancel()
             self.worker.wait()
             self.infoLabel.setText("Processing cancelled.")
-            self.progressBar.setValue(0)
+            self.progressBarInit()
 
     @Inputs.data
     def set_data(self, data):
@@ -214,19 +210,20 @@ class OWPOSTagger(widget.OWWidget):
             self.infoLabel.setText("Unknown framework selected.")
             return
 
+        self.progressBarInit()
         self.worker.progress.connect(self.update_progress)
         self.worker.result.connect(self.process_result)
         self.worker.start()
 
     def update_progress(self, value):
-        self.progressBar.setValue(value)
+        self.progressBarSet(value)
 
     def process_result(self, pos_json_list):
         meta_var = StringVariable("POS Tags")
         new_data = self.corpus.add_column(meta_var, pos_json_list, to_metas=True)
         self.Outputs.data.send(new_data)
         self.infoLabel.setText("POS tagging complete.")
-        self.progressBar.setValue(100)
+        self.progressBarFinished()
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview

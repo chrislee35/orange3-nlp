@@ -1,6 +1,6 @@
 from AnyQt.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QComboBox,
-    QLabel, QTextEdit, QProgressBar, QSpinBox, QDoubleSpinBox
+    QLabel, QTextEdit, QSpinBox, QDoubleSpinBox
 )
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
 from Orange.widgets import widget, settings
@@ -105,7 +105,6 @@ class OWOllamaRAG(widget.OWWidget):
         self.error_box.setStyleSheet("color: red;")
         self.controlArea.layout().addWidget(QLabel("Generation Errors:"))
         self.controlArea.layout().addWidget(self.error_box)
-
 
         self.controlArea.layout().setAlignment(Qt.AlignTop)
 

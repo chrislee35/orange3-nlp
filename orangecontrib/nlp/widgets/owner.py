@@ -1,4 +1,4 @@
-from AnyQt.QtWidgets import QLabel, QProgressBar, QVBoxLayout, QGridLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QComboBox, QWidget
+from AnyQt.QtWidgets import QLabel, QVBoxLayout, QGridLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QComboBox, QWidget
 from AnyQt.QtCore import QThread, pyqtSignal, Qt
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
@@ -182,10 +182,6 @@ class OWNERWidget(widget.OWWidget):
         self.infoLabel = QLabel("No data on input yet.", self)
         layout.addWidget(self.infoLabel, i+4, 0, 1, 2, Qt.AlignmentFlag.AlignLeft)
 
-
-        self.progressBar = QProgressBar(self)
-        self.progressBar.setValue(0)
-        self.layout().addWidget(self.progressBar)
         
         control_layout = QVBoxLayout()
         control_layout.setAlignment(Qt.AlignTop)
@@ -225,7 +221,7 @@ class OWNERWidget(widget.OWWidget):
             self.worker.cancel()
             self.worker.wait()
             self.infoLabel.setText("Processing cancelled.")
-            self.progressBar.setValue(0)
+            self.progressBarInit() # external progress bar
 
     @Inputs.data
     def set_data(self, data):
@@ -266,13 +262,13 @@ class OWNERWidget(widget.OWWidget):
         self.worker.start()
 
     def update_progress(self, value):
-        self.progressBar.setValue(value)
+        self.progressBarSet(value)
 
     def process_result(self, entity_list):
         new_data = self.corpus.add_column(StringVariable("Named Entities"), entity_list, to_metas=True)
         self.Outputs.data.send(new_data)
         self.infoLabel.setText("NER processing complete.")
-        self.progressBar.setValue(100)
+        self.progressBarFinished()
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
