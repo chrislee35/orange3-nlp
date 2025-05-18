@@ -256,7 +256,8 @@ class OWNERWidget(widget.OWWidget):
         else:
             self.infoLabel.setText("Unknown framework selected.")
             return
-
+            
+        self.progressBarInit()
         self.worker.progress.connect(self.update_progress)
         self.worker.result.connect(self.process_result)
         self.worker.start()
