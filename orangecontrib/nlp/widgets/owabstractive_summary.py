@@ -4,6 +4,7 @@ from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
 from Orange.data import StringVariable
 from orangecontrib.text.corpus import Corpus
+from orangecontrib.nlp.util.sentence_truncate import truncate_at_sentence
 import numpy as np
 import json
 import requests
@@ -28,14 +29,14 @@ class BartWorker(SummaryWorker):
     def run(self):
         from transformers import pipeline
         summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
-        MAX_CHARS = 3000
+        MAX_CHARS = 3700
 
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:
                 return
             try:
-                short_text = text[:MAX_CHARS]
+                short_text = truncate_at_sentence(text, MAX_CHARS)
                 summary = summarizer(short_text, max_length=130, min_length=30, do_sample=False)
                 results.append(summary[0]['summary_text'])
             except Exception as e:
@@ -56,7 +57,7 @@ class PegasusWorker(SummaryWorker):
             if self._is_cancelled:
                 return
             try:
-                short_text = text[:MAX_CHARS]
+                short_text = truncate_at_sentence(text, MAX_CHARS)
                 summary = summarizer(short_text, max_length=60, min_length=20, do_sample=False)
                 results.append(summary[0]['summary_text'])
             except Exception as e:
@@ -69,14 +70,14 @@ class T5Worker(SummaryWorker):
     def run(self):
         from transformers import pipeline
         summarizer = pipeline("summarization", model="t5-base")
-        MAX_CHARS = 3000
+        MAX_CHARS = 3700
 
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:
                 return
             try:
-                short_text = text[:MAX_CHARS]
+                short_text = truncate_at_sentence(text, MAX_CHARS)
                 summary = summarizer("summarize: " + short_text, max_length=130, min_length=30, do_sample=False)
                 results.append(summary[0]['summary_text'])
             except Exception as e:
@@ -88,14 +89,14 @@ class FlanT5Worker(SummaryWorker):
     def run(self):
         from transformers import pipeline
         summarizer = pipeline("summarization", model="google/flan-t5-large")
-        MAX_CHARS = 3000
+        MAX_CHARS = 3700
 
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:
                 return
             try:
-                short_text = text[:MAX_CHARS]
+                short_text = truncate_at_sentence(text, MAX_CHARS)
                 summary = summarizer("summarize: " + short_text, max_length=130, min_length=30, do_sample=False)
                 results.append(summary[0]['summary_text'])
             except Exception as e:
@@ -129,6 +130,7 @@ class OllamaSummaryWorker(SummaryWorker):
                 results.append(content.strip())
             except Exception as e:
                 results.append(f"Error: {e}")
+                print(f"Error: {e}")
             self.progress.emit(int((i + 1) / len(self.texts) * 100))
         self.result.emit(results)
 
@@ -214,9 +216,15 @@ class OWAbstractiveSummary(widget.OWWidget):
                     index = self.model_selector.findText(self.selected_model)
                     if index >= 0:
                         self.model_selector.setCurrentIndex(index)
+
         except Exception as e:
             print("Failed to fetch models from Ollama server:", e)
             
+    def save_ollama_config(self):
+        self.ollama_host = self.host_input.text()
+        self.ollama_port = self.port_input.text()
+        self.selected_model = self.model_selector.currentText()
+
     def select_framework(self, index):
         if self.worker and self.worker.isRunning():
             self.cancel_processing()
@@ -272,6 +280,7 @@ class OWAbstractiveSummary(widget.OWWidget):
         self.worker.progress.connect(self.update_progress)
         self.worker.result.connect(self.process_result)
         self.worker.start()
+        self.save_ollama_config()
 
     def update_progress(self, value):
         self.progressBarSet(value)
