@@ -1,6 +1,6 @@
 from AnyQt.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QComboBox,
-    QLabel, QTextEdit, QSpinBox, QDoubleSpinBox
+    QLabel, QTextEdit, QSpinBox, QDoubleSpinBox, QWidget
 )
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
 from Orange.widgets import widget, settings
@@ -182,6 +182,8 @@ class OWReferenceLibrary(widget.OWWidget):
     threshold = settings.Setting(0.0)
     chunk_size = settings.Setting(256)
     query = settings.Setting("")
+    ollama_host = settings.Setting("localhost")
+    ollama_port = settings.Setting("11434")
 
     def __init__(self):
         super().__init__()
@@ -230,8 +232,25 @@ class OWReferenceLibrary(widget.OWWidget):
         self.chunk_size_combo.currentTextChanged.connect(self.on_chunk_size_change)
         self.controlArea.layout().addWidget(self.chunk_size_combo)
 
-        self.controlArea.layout().setAlignment(Qt.AlignTop)
+        # Ollama host/port config panel (initially hidden)
+        self.ollama_panel = QWidget()
+        ollama_layout = QVBoxLayout()
+        self.ollama_panel.setLayout(ollama_layout)
 
+        self.host_input = QLineEdit(self.ollama_host)
+        self.port_input = QLineEdit(self.ollama_port)
+        self.host_input.setPlaceholderText("Ollama Host")
+        self.port_input.setPlaceholderText("Ollama Port")
+
+        ollama_layout.addWidget(QLabel("Ollama Host:"))
+        ollama_layout.addWidget(self.host_input)
+        ollama_layout.addWidget(QLabel("Ollama Port:"))
+        ollama_layout.addWidget(self.port_input)
+
+        self.controlArea.layout().addWidget(self.ollama_panel)
+        self.ollama_panel.setVisible(self.embedder_combo.currentText() == "nomic-embed-text")
+
+        self.controlArea.layout().setAlignment(Qt.AlignTop)
 
     def layout_main_area(self):
         self.query_input = QLineEdit()
@@ -254,6 +273,7 @@ class OWReferenceLibrary(widget.OWWidget):
 
     def on_embedder_change(self, text):
         self.embedder = text
+        self.ollama_panel.setVisible(text == "nomic-embed-text")
         self.build_vector_db()
 
     def on_max_excerpts_change(self, val):
@@ -308,7 +328,12 @@ class OWReferenceLibrary(widget.OWWidget):
         self.worker.progress.connect(self.update_progress)
         self.worker.result.connect(self.display_results)
         self.worker.start()
+        self.save_ollama_config()
 
+    def save_ollama_config(self):
+        self.ollama_host = self.host_input.text()
+        self.ollama_port = self.port_input.text()
+        
     def display_results(self, results):
         excerpt_var = StringVariable("excerpt")
         score_var = StringVariable("score")

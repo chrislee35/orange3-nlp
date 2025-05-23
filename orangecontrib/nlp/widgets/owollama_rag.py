@@ -186,6 +186,12 @@ class OWOllamaRAG(widget.OWWidget):
         self.worker.error.connect(self.error_box.setPlainText)
         self.worker.finished.connect(self.send_output)
         self.worker.start()     
+        self.save_ollama_config()
+
+    def save_ollama_config(self):
+        self.host = self.host_input.text()
+        self.port = self.port_input.text()
+        self.model = self.model_combo.currentText()
 
     def send_output(self, result):
         self.stop_button.setEnabled(False)

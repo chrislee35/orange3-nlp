@@ -20,3 +20,12 @@ release: build
 # Clean build artifacts
 clean:
 	rm -rf build/ dist/ *.egg-info doc/_build
+
+test:
+	python tests/test_nlp.py TestWidgets.test_abstractive_summary
+	python tests/test_nlp.py TestWidgets.test_extractive_summary
+	python tests/test_nlp.py TestWidgets.test_owner
+	python tests/test_nlp.py TestWidgets.test_postagger
+	python tests/test_nlp.py TestWidgets.test_question_answer
+	python tests/test_nlp.py TestWidgets.test_reference_library
+	python tests/test_nlp.py TestWidgets.test_ollama_rag

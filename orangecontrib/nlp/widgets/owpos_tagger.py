@@ -137,7 +137,7 @@ class OWPOSTagger(widget.OWWidget):
         data = Output("Tagged Corpus", Corpus)
 
     want_main_area = False
-    selected_framework = settings.Setting(0)
+    selected_framework = settings.Setting("spaCy")
 
     def __init__(self):
         super().__init__()
@@ -147,7 +147,7 @@ class OWPOSTagger(widget.OWWidget):
         self.framework_buttons = QButtonGroup(self)
         for i, fw in enumerate(self.frameworks):
             btn = QRadioButton(fw)
-            if i == self.selected_framework:
+            if fw == self.selected_framework:
                 btn.setChecked(True)
             self.controlArea.layout().addWidget(btn)
             self.framework_buttons.addButton(btn, i)
@@ -165,7 +165,7 @@ class OWPOSTagger(widget.OWWidget):
     def select_framework(self, index):
         if self.worker and self.worker.isRunning():
             self.cancel_processing()
-        self.selected_framework = index
+        self.selected_framework = self.frameworks[index]
         if self.corpus is not None:
             self.start_processing()
 
@@ -198,7 +198,7 @@ class OWPOSTagger(widget.OWWidget):
 
         texts = self.corpus.documents
         language = getattr(self.corpus, "language", "en") or "en"
-        framework = self.frameworks[self.selected_framework]
+        framework = self.selected_framework
 
         if framework == "spaCy":
             self.worker = SpaCyPOSWorker(texts, language)

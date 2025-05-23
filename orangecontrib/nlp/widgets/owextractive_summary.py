@@ -126,7 +126,7 @@ class OWExtractiveSummary(widget.OWWidget):
 
     want_main_area = False
 
-    selected_framework = settings.Setting(0)
+    selected_framework = settings.Setting("Sumy")
     ollama_host = settings.Setting("localhost")
     ollama_port = settings.Setting("11434")
     selected_model = settings.Setting("")
@@ -136,49 +136,52 @@ class OWExtractiveSummary(widget.OWWidget):
         self.corpus = None
         self.frameworks = ["Sumy", "Summa", "BART", "Ollama"]
 
-        self.control_widget = QWidget()
-        layout = QGridLayout()
-        layout.setVerticalSpacing(2)
+        self.worker = None
+        self.layout_control_area()
 
+    def layout_control_area(self):
+        a = self.controlArea.layout().addWidget
         self.framework_buttons = QButtonGroup(self)
         for i, fw in enumerate(self.frameworks):
             btn = QRadioButton(fw)
-            if i == self.selected_framework:
+            if fw == self.selected_framework:
                 btn.setChecked(True)
-            layout.addWidget(btn, i, 1)
+            a(btn)
             self.framework_buttons.addButton(btn, i)
         self.framework_buttons.buttonClicked[int].connect(self.select_framework)
 
-        i = len(self.frameworks)
-        layout.addWidget(QLabel("Ollama Host:"), i, 0)
-        self.host_input = QLineEdit(self.ollama_host)
-        layout.addWidget(self.host_input, i, 1)
-        self.host_input.editingFinished.connect(self.update_model_list)
-
-        layout.addWidget(QLabel("Ollama Port:"), i+1, 0)
-        self.port_input = QLineEdit(self.ollama_port)
-        layout.addWidget(self.port_input, i+1, 1)
-        self.port_input.editingFinished.connect(self.update_model_list)
-
-        self.model_selector = QComboBox()
-        layout.addWidget(QLabel("Active Model:"), i+2, 0)
-        layout.addWidget(self.model_selector, i+2, 1)
-
         self.cancel_button = QPushButton("Cancel", self)
         self.cancel_button.clicked.connect(self.cancel_processing)
-        layout.addWidget(self.cancel_button, i+3, 0, 1, 2)
+        a(self.cancel_button)
         self.infoLabel = QLabel("No data on input yet.", self)
-        layout.addWidget(self.infoLabel, i+4, 0, 1, 2, Qt.AlignmentFlag.AlignLeft)
+        a(self.infoLabel, Qt.AlignmentFlag.AlignLeft)
 
-        control_layout = QVBoxLayout()
-        control_layout.setAlignment(Qt.AlignTop)
-        control_layout.addLayout(layout)
+        self.layout_ollama_config()
+        a(self.ollama_panel)
+        self.ollama_panel.setVisible(self.selected_framework == "Ollama")
+        self.controlArea.layout().setAlignment(Qt.AlignTop)
 
-        self.control_widget.setLayout(control_layout)
-        self.controlArea.layout().addWidget(self.control_widget)
+    def layout_ollama_config(self):
+        # Ollama host/port config panel (initially hidden)
+        self.ollama_panel = QWidget()
+        ollama_layout = QVBoxLayout()
+        self.ollama_panel.setLayout(ollama_layout)
 
+        self.host_input = QLineEdit(self.ollama_host)
+        self.port_input = QLineEdit(self.ollama_port)
+        self.model_selector = QComboBox()
+        self.host_input.setPlaceholderText("Ollama Host")
+        self.port_input.setPlaceholderText("Ollama Port")
+
+        ollama_layout.addWidget(QLabel("Ollama Host:"))
+        ollama_layout.addWidget(self.host_input)
+        ollama_layout.addWidget(QLabel("Ollama Port:"))
+        ollama_layout.addWidget(self.port_input)
+        ollama_layout.addWidget(QLabel("Ollama Model:"))
+        ollama_layout.addWidget(self.model_selector)
+        self.host_input.editingFinished.connect(self.update_model_list)
+        self.port_input.editingFinished.connect(self.update_model_list)
         self.update_model_list()
-        self.worker = None
 
     def update_model_list(self):
         host, port = self.host_input.text(), self.port_input.text()
@@ -195,16 +198,12 @@ class OWExtractiveSummary(widget.OWWidget):
                         self.model_selector.setCurrentIndex(index)
         except Exception as e:
             print("Failed to fetch models from Ollama server:", e)
-            
-    def save_ollama_config(self):
-        self.ollama_host = self.host_input.text()
-        self.ollama_port = self.port_input.text()
-        self.selected_model = self.model_selector.currentText()
         
     def select_framework(self, index):
         if self.worker and self.worker.isRunning():
             self.cancel_processing()
-        self.selected_framework = index
+        self.selected_framework = self.frameworks[index]
+        self.ollama_panel.setVisible(self.selected_framework == "Ollama")
         if self.corpus is not None:
             self.start_processing()
 
@@ -228,7 +227,6 @@ class OWExtractiveSummary(widget.OWWidget):
     def start_processing(self):
         if self.worker and self.worker.isRunning():
             self.cancel_processing()
-
         text_var = next((var for var in self.corpus.text_features), None)
         if text_var is None:
             self.infoLabel.setText("No text attribute found.")
@@ -236,8 +234,7 @@ class OWExtractiveSummary(widget.OWWidget):
             return
 
         texts = self.corpus.documents
-        framework = self.frameworks[self.selected_framework]
-
+        framework = self.selected_framework
         if framework == "Sumy":
             self.worker = SumyWorker(texts)
         elif framework == "Summa":
@@ -255,16 +252,21 @@ class OWExtractiveSummary(widget.OWWidget):
         self.worker.result.connect(self.process_result)
         self.worker.start()
         self.save_ollama_config()
-
+            
+    def save_ollama_config(self):
+        self.ollama_host = self.host_input.text()
+        self.ollama_port = self.port_input.text()
+        self.selected_model = self.model_selector.currentText()
+        
     def update_progress(self, value):
         self.progressBarSet(value)
 
     def process_result(self, summary_list):
         summary_var = StringVariable("Extractive Summary")
         new_data = self.corpus.add_column(summary_var, summary_list, to_metas=True)
-        self.Outputs.data.send(new_data)
         self.infoLabel.setText("Summarization complete.")
         self.progressBarFinished()
+        self.Outputs.data.send(new_data)
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
