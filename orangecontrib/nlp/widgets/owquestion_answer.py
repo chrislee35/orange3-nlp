@@ -83,11 +83,11 @@ class OWQuestionAnswer(widget.OWWidget):
         self.textbox = QLineEdit()
         self.textbox.setPlaceholderText("Enter your question here")
         self.textbox.setText(self.question)
-        self.textbox.returnPressed.connect(self.ask_question)
+        self.textbox.returnPressed.connect(self.set_question)
         self.mainArea.layout().addWidget(self.textbox)
 
         self.ask_button = QPushButton("Ask")
-        self.ask_button.clicked.connect(self.ask_question)
+        self.ask_button.clicked.connect(self.set_question)
         self.mainArea.layout().addWidget(self.ask_button)
 
         self.answer_box = QTextEdit()
@@ -127,8 +127,11 @@ class OWQuestionAnswer(widget.OWWidget):
         if self.corpus and self.question:
             self.ask_question()
 
-    def ask_question(self):
+    def set_question(self):
         self.question = self.textbox.text()
+        self.ask_question()
+
+    def ask_question(self):
         if not self.question or not self.corpus:
             return
 
