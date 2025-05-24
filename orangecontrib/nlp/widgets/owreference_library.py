@@ -254,6 +254,7 @@ class OWReferenceLibrary(widget.OWWidget):
     def layout_main_area(self):
         self.query_input = QLineEdit()
         self.query_input.setPlaceholderText("Enter query here")
+        self.query_input.setText(self.query)
         self.query_input.returnPressed.connect(self.on_query_change)
         self.mainArea.layout().addWidget(self.query_input)
 
@@ -366,6 +367,7 @@ class OWReferenceLibrary(widget.OWWidget):
 
         self.results_display.setPlainText("\n---\n".join([f"{r[0]}\n(Similarity: {r[2]:.4f})" for r in results if r[2] >= self.threshold]))
         self.Outputs.data.send(new_corpus)
+        self.progressBarFinished()
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
