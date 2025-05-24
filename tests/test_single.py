@@ -23,7 +23,6 @@ class TestNLPWidget(WidgetTest):
         sample = full_corpus[indices]
 
         self.output_count_expected = len(sample)
-        print(widget_name)
 
         if widget_name == 'OWAbstractiveSummary':
             from orangecontrib.nlp.widgets.owabstractive_summary import OWAbstractiveSummary
