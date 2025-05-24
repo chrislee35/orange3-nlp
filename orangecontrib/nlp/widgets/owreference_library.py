@@ -141,7 +141,7 @@ class VectorDB(QThread):
         query_vec = self.embed_func([query])
         faiss.normalize_L2(query_vec)
         D, I = self.index.search(query_vec, top_k)
-        return [(self.texts[i], self.metadata[self.metadata_idx[i]], float(D[0][j])) for j, i in enumerate(I[0]) if i < len(self.texts)]
+        return [(self.chunks[i], self.metadata[self.metadata_idx[i]], float(D[0][j])) for j, i in enumerate(I[0]) if i < len(self.chunks)]
 
 class SearchWorker(QThread):
     result = pyqtSignal(list)
@@ -164,7 +164,6 @@ class SearchWorker(QThread):
         if not self._cancelled:
             self.result.emit(results)
 
-
 class OWReferenceLibrary(widget.OWWidget):
     name = "Reference Library"
     description = "Stores documents in a vector database and retrieves references."
@@ -175,7 +174,7 @@ class OWReferenceLibrary(widget.OWWidget):
         data = Input("Corpus", Corpus)
 
     class Outputs:
-        data = Output("Corpus", Corpus)
+        data = Output("Excerpts", Corpus)
 
     embedder = settings.Setting("sentence-transformers")
     max_excerpts = settings.Setting(5)
@@ -255,11 +254,12 @@ class OWReferenceLibrary(widget.OWWidget):
     def layout_main_area(self):
         self.query_input = QLineEdit()
         self.query_input.setPlaceholderText("Enter query here")
+        self.query_input.returnPressed.connect(self.on_query_change)
         self.mainArea.layout().addWidget(self.query_input)
 
         buttons_layout = QHBoxLayout()
         self.search_button = QPushButton("Find References")
-        self.search_button.clicked.connect(self.find_references)
+        self.search_button.clicked.connect(self.on_query_change)
         buttons_layout.addWidget(self.search_button)
 
         self.stop_button = QPushButton("Stop")
@@ -286,6 +286,10 @@ class OWReferenceLibrary(widget.OWWidget):
         self.chunk_size = int(val)
         self.build_vector_db()
 
+    def on_query_change(self):
+        self.query = self.query_input.text()
+        self.find_references()
+
     @Inputs.data
     def set_data(self, data):
         self.corpus = data
@@ -309,6 +313,7 @@ class OWReferenceLibrary(widget.OWWidget):
 
     def finish_vector_db_indexing(self, index: object):
         self.progressBarFinished()
+        self.find_references()
 
     def stop_worker(self):
         if self.worker and self.worker.isRunning():
@@ -317,13 +322,12 @@ class OWReferenceLibrary(widget.OWWidget):
             self.progressBarInit()
 
     def find_references(self):
-        if not self.corpus or not self.query_input.text():
+        if not self.corpus or not self.query:
             return
 
         self.stop_worker()
 
         self.progressBarInit()
-        self.query = self.query_input.text()
         self.worker = SearchWorker(self.query, self.vector_db, top_k=self.max_excerpts)
         self.worker.progress.connect(self.update_progress)
         self.worker.result.connect(self.display_results)

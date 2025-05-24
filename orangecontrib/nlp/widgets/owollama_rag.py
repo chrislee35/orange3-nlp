@@ -113,10 +113,11 @@ class OWOllamaRAG(widget.OWWidget):
         self.prompt_input.setPlainText(self.prompt)
         self.mainArea.layout().addWidget(QLabel("Prompt:"))
         self.mainArea.layout().addWidget(self.prompt_input)
+        #self.prompt_input.returnPressed(self.on_prompt_changed)
 
         buttons_layout = QHBoxLayout()
         self.generate_button = QPushButton("Generate")
-        self.generate_button.clicked.connect(self.generate_response)
+        self.generate_button.clicked.connect(self.on_prompt_changed)
         buttons_layout.addWidget(self.generate_button)
 
         self.stop_button = QPushButton("Stop")
@@ -138,6 +139,10 @@ class OWOllamaRAG(widget.OWWidget):
     def on_model_changed(self, text):
         self.model = text
 
+    def on_prompt_changed(self):
+        self.prompt = self.prompt_input.text()
+        self.generate_response()
+
     def update_model_list(self):
         try:
             url = f"http://{self.host}:{self.port}/api/tags"
@@ -158,6 +163,7 @@ class OWOllamaRAG(widget.OWWidget):
     @Inputs.data
     def set_data(self, data):
         self.corpus = data
+        self.generate_response()
 
     def stop_worker(self):
         if self.worker and self.worker.isRunning():
@@ -165,13 +171,13 @@ class OWOllamaRAG(widget.OWWidget):
             self.worker.wait()
 
     def generate_response(self):
-        if not self.corpus or not self.model:
+        if not self.corpus or not self.model or not self.prompt:
             return
 
         self.stop_worker()
         self.error_box.setPlainText("")
 
-        self.prompt = self.prompt_input.toPlainText()
+        #self.prompt = self.prompt_input.toPlainText()
         self.host = self.host_input.text()
         self.port = self.port_input.value()
 
