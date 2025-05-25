@@ -54,15 +54,19 @@ class PegasusWorker(SummaryWorker):
         from transformers import pipeline
         summarizer = pipeline("summarization", model="google/pegasus-xsum")
         MAX_CHARS = 3000
+        SUMMARY_LENGTH = 60
 
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:
                 return
             try:
-                short_text = truncate_at_sentence(text, MAX_CHARS)
-                summary = summarizer(short_text, max_length=60, min_length=20, do_sample=False)
-                results.append(summary[0]['summary_text'])
+                if len(text) < SUMMARY_LENGTH:
+                    results.append(text)
+                else:
+                    short_text = truncate_at_sentence(text, MAX_CHARS)
+                    summary = summarizer(short_text, max_length=SUMMARY_LENGTH, min_length=20, do_sample=False)
+                    results.append(summary[0]['summary_text'])
             except Exception as e:
                 results.append(f"Error: {e}")
             self.progress.emit(int((i + 1) / len(self.texts) * 100))
@@ -74,15 +78,19 @@ class T5Worker(SummaryWorker):
         from transformers import pipeline
         summarizer = pipeline("summarization", model="t5-base")
         MAX_CHARS = 3700
+        SUMMARY_LENGTH = 130
 
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:
                 return
             try:
-                short_text = truncate_at_sentence(text, MAX_CHARS)
-                summary = summarizer("summarize: " + short_text, max_length=130, min_length=30, do_sample=False)
-                results.append(summary[0]['summary_text'])
+                if len(text) < SUMMARY_LENGTH:
+                    results.append(text)
+                else:
+                    short_text = truncate_at_sentence(text, MAX_CHARS)
+                    summary = summarizer("summarize: " + short_text, max_length=SUMMARY_LENGTH, min_length=30, do_sample=False)
+                    results.append(summary[0]['summary_text'])
             except Exception as e:
                 results.append(f"Error: {e}")
             self.progress.emit(int((i + 1) / len(self.texts) * 100))
@@ -93,15 +101,19 @@ class FlanT5Worker(SummaryWorker):
         from transformers import pipeline
         summarizer = pipeline("summarization", model="google/flan-t5-large")
         MAX_CHARS = 3700
-
+        SUMMARY_LENGTH = 130
+        
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:
                 return
             try:
-                short_text = truncate_at_sentence(text, MAX_CHARS)
-                summary = summarizer("summarize: " + short_text, max_length=130, min_length=30, do_sample=False)
-                results.append(summary[0]['summary_text'])
+                if len(text) < SUMMARY_LENGTH:
+                    results.append(text)
+                else:
+                    short_text = truncate_at_sentence(text, MAX_CHARS)
+                    summary = summarizer("summarize: " + short_text, max_length=130, min_length=30, do_sample=False)
+                    results.append(summary[0]['summary_text'])
             except Exception as e:
                 results.append(f"Error: {e}")
             self.progress.emit(int((i + 1) / len(self.texts) * 100))
@@ -113,24 +125,29 @@ class OllamaSummaryWorker(SummaryWorker):
         self.host = ollama_host
         self.port = ollama_port
         self.model_name = model_name
-
+        
     def run(self):
+        SUMMARY_LENGTH = 300
+
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:
                 return
             try:
-                prompt = (
-                    "Summarize the following text using **abstractive summarization**.\n"
-                    f"Text: {text}"
-                )
-                response = requests.post(
-                    f"http://{self.host}:{self.port}/api/generate",
-                    json={"model": self.model_name, "prompt": prompt, "stream": False},
-                    headers={"Content-Type": "application/json"}
-                )
-                content = response.json().get("response", "")
-                results.append(content.strip())
+                if len(text) < SUMMARY_LENGTH:
+                    results.append(text)
+                else:
+                    prompt = (
+                        "Summarize the following text using **abstractive summarization**.\n"
+                        f"Text: {text}"
+                    )
+                    response = requests.post(
+                        f"http://{self.host}:{self.port}/api/generate",
+                        json={"model": self.model_name, "prompt": prompt, "stream": False},
+                        headers={"Content-Type": "application/json"}
+                    )
+                    content = response.json().get("response", "")
+                    results.append(content.strip())
             except Exception as e:
                 results.append(f"Error: {e}")
                 print(f"Error: {e}")
@@ -206,6 +223,7 @@ class OWAbstractiveSummary(widget.OWWidget):
         ollama_layout.addWidget(self.model_selector)
         self.host_input.editingFinished.connect(self.update_model_list)
         self.port_input.editingFinished.connect(self.update_model_list)
+        self.model_selector.editTextChanged.connect(self.select_model)
         self.update_model_list()
 
     def update_model_list(self):
@@ -233,6 +251,9 @@ class OWAbstractiveSummary(widget.OWWidget):
         self.ollama_panel.setVisible(self.selected_framework == "Ollama")
         if self.corpus is not None:
             self.start_processing()
+    
+    def select_model(self, index):
+        self.selected_model = self.model_selector.currentText()
 
     def cancel_processing(self):
         if self.worker and self.worker.isRunning():

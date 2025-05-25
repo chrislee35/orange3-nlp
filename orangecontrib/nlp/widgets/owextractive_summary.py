@@ -65,20 +65,22 @@ class BartWorker(SummaryWorker):
     def run(self):
         from transformers import pipeline
         summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+        SUMMARY_LENGTH = 130
 
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:
                 return
             try:
-                if len(text) > 3700:
-                    text = truncate_at_sentence(text, 3700)
-                summary = summarizer(text, max_length=130, min_length=30, do_sample=False)
-                results.append(summary[0]['summary_text'])
+                if len(text) < SUMMARY_LENGTH:
+                    results.append(text)
+                else:
+                    if len(text) > 3700:
+                        text = truncate_at_sentence(text, 3700)
+                    summary = summarizer(text, max_length=SUMMARY_LENGTH, min_length=30, do_sample=False)
+                    results.append(summary[0]['summary_text'])
             except Exception as e:
                 results.append(f"Error: {e}")
-                #import traceback
-                #traceback.print_exc()
             self.progress.emit(int((i + 1) / len(self.texts) * 100))
         self.result.emit(results)
 
