@@ -140,7 +140,7 @@ class OWOllamaRAG(widget.OWWidget):
         self.model = text
 
     def on_prompt_changed(self):
-        self.prompt = self.prompt_input.text()
+        self.prompt = self.prompt_input.toPlainText()
         self.generate_response()
 
     def update_model_list(self):
@@ -196,7 +196,7 @@ class OWOllamaRAG(widget.OWWidget):
 
     def save_ollama_config(self):
         self.host = self.host_input.text()
-        self.port = self.port_input.text()
+        self.port = self.port_input.value()
         self.model = self.model_combo.currentText()
 
     def send_output(self, result):
