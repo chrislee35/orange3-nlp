@@ -64,6 +64,7 @@ namespaces = true
 
 [project.entry-points."orange.widgets"]
 nlp = "orangecontrib.nlp.widgets"
+embedders = "orangeconfig.nlp.widgets.embedders"
 
 [project.entry-points."orange3.addon"]
 orange3-nlp = "orangecontrib.nlp"
