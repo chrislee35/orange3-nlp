@@ -1,5 +1,6 @@
 # ignore model files
 *.udpipe
+cc.*.bin
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

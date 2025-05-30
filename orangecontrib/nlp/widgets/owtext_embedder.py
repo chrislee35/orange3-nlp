@@ -7,16 +7,17 @@ from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
 from Orange.data import Domain, StringVariable, Table, ContinuousVariable
 from orangecontrib.text.corpus import Corpus
+from orangecontrib.nlp.util.embedder_models import EmbedderModel
 import numpy as np
 
 class EmbedderWorker(QThread):
     result = pyqtSignal(Corpus)  # emits the embedded Corpus
     progress = pyqtSignal(int)   # emits progress (0-100)
 
-    def __init__(self, corpus: Corpus, embed_func):
+    def __init__(self, corpus: Corpus, embedder: EmbedderModel):
         super().__init__()
         self.corpus = corpus
-        self.embed_func = embed_func
+        self.embedder = embedder
 
     def run(self):
         last_progress = 0
@@ -27,7 +28,7 @@ class EmbedderWorker(QThread):
         idx = 0
         for i in range(0, total_documents, batch_size):
             batch = self.corpus.documents[i:i + batch_size]
-            vecs = self.embed_func(batch)
+            vecs = self.embedder.embed(batch)
             vectors.extend(vecs)
             idx += 1
             progress = int(100*(idx/total_batches))
@@ -47,22 +48,15 @@ class EmbedderWorker(QThread):
         combined_attrs = list(original_attrs) + embedding_attrs
 
         domain = Domain(
-            attributes=combined_attrs,
-            class_vars=self.corpus.domain.class_vars,
-            metas=self.corpus.domain.metas
+            attributes = combined_attrs,
+            class_vars = self.corpus.domain.class_vars,
+            metas      = self.corpus.domain.metas
         )
 
         new_table = Table(domain, new_X, self.corpus.Y, self.corpus.metas)
         new_corpus = Corpus.from_table(domain, new_table)
 
-        self.result.emit(new_corpus)    
-
-class EmbedderWrapper(object):
-    def __init__(self, embedder):
-        self.embedder = embedder
-    
-    def embed(self, texts: list[str]):
-        return self.embedder(texts)
+        self.result.emit(new_corpus)
 
 class OWTextEmbedder(widget.OWWidget):
     name = "Text Embedder"
@@ -72,7 +66,7 @@ class OWTextEmbedder(widget.OWWidget):
 
     class Inputs:
         data = Input("Corpus", Corpus)
-        embedder = Input("Embedder", object, auto_summary=False)
+        embedder = Input("Embedder", EmbedderModel, auto_summary=False)
 
     class Outputs:
         data = Output("Embedded Corpus", Corpus)
@@ -84,51 +78,25 @@ class OWTextEmbedder(widget.OWWidget):
         super().__init__()
         self.corpus = None
         self.worker = None
-        #self.layout_control_area()
-
-    def layout_control_area(self):
-        self.controlArea.layout().addWidget(QLabel("Embedder:"))
-        self.embedder_combo = QComboBox()
-        self.embedder_combo.addItems([
-            "sentence-transformers", "e5-small-v2", "nomic-embed-text", "spacy"
-        ])
-        self.embedder_combo.setCurrentText(self.embedder)
-        self.embedder_combo.currentTextChanged.connect(self.on_embedder_change)
-        self.controlArea.layout().addWidget(self.embedder_combo)
-
-        # Ollama host/port config panel (initially hidden)
-        self.ollama_panel = QWidget()
-        ollama_layout = QVBoxLayout()
-        self.ollama_panel.setLayout(ollama_layout)
-
-        self.host_input = QLineEdit(self.ollama_host)
-        self.port_input = QLineEdit(self.ollama_port)
-        self.host_input.setPlaceholderText("Ollama Host")
-        self.port_input.setPlaceholderText("Ollama Port")
-
-        ollama_layout.addWidget(QLabel("Ollama Host:"))
-        ollama_layout.addWidget(self.host_input)
-        ollama_layout.addWidget(QLabel("Ollama Port:"))
-        ollama_layout.addWidget(self.port_input)
-
-        self.controlArea.layout().addWidget(self.ollama_panel)
-        self.controlArea.layout().setAlignment(Qt.AlignTop)
-
-    def on_embedder_change(self, text):
-        self.embedder = text
-        self.run_embedder()
+        self.embedder = None
 
     @Inputs.data
     def set_data(self, data):
         self.corpus = data
         self.run_embedder()
 
+    @Inputs.embedder
+    def set_embedder(self,embedder):
+        self.embedder = embedder
+        self.run_embedder()
+    
     def run_embedder(self):
+        if self.corpus and not self.embedder:
+            self.Error.add_message("You much connect an embedder")
+            return
         if not (self.corpus and self.embedder):
             return
-        embed_func = EmbedderFactory.get_embedder(self.embedder)
-        self.Outputs.embedder.send(embed_func)
-        self.worker = EmbedderWorker(self.corpus, embed_func)
+        self.worker = EmbedderWorker(self.corpus, self.embedder)
         self.progressBarInit()
         self.worker.progress.connect(self.progressBarSet)
         self.worker.result.connect(self.finish_embedding)

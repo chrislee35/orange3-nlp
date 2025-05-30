@@ -7,17 +7,10 @@ from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
 from Orange.data import Domain, StringVariable, Table
 from orangecontrib.text.corpus import Corpus
+from orangecontrib.nlp.util.embedder_models import EmbedderModel
 import numpy as np
 import uuid
 import faiss
-import spacy
-from sentence_transformers import SentenceTransformer
-from transformers import AutoTokenizer, AutoModel
-import torch
-import requests
-from orangecontrib.nlp.util.spacy_downloader import SpaCyDownloader
-
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 class VectorDB(QThread):
     result = pyqtSignal(object)  # emits the built VectorDB
@@ -105,7 +98,7 @@ class OWReferenceLibrary(widget.OWWidget):
 
     class Inputs:
         data = Input("Corpus", Corpus)
-        embedder = Input("Embedder", object, auto_summary=False)
+        embedder = Input("Embedder", EmbedderModel, auto_summary=False)
 
     class Outputs:
         data = Output("Excerpts", Corpus)
@@ -119,7 +112,7 @@ class OWReferenceLibrary(widget.OWWidget):
 
         self.corpus = None
         self.vector_db = None
-        self.embed_func = None
+        self.embedder = None
         self.worker = None
 
         self.layout_control_area()
@@ -183,7 +176,7 @@ class OWReferenceLibrary(widget.OWWidget):
 
     @Inputs.embedder
     def set_embedder(self, embedder):
-        self.embed_func = embedder
+        self.embedder = embedder
         self.find_references()
 
     def build_vector_db(self):
@@ -207,13 +200,13 @@ class OWReferenceLibrary(widget.OWWidget):
             self.progressBarInit()
 
     def find_references(self):
-        if not self.corpus or not self.query or not self.embed_func:
+        if not self.corpus or not self.query or not self.embedder:
             return
 
         self.stop_worker()
 
         self.progressBarInit()
-        query_vec = self.embed_func([self.query])
+        query_vec = self.embedder.embed([self.query])
         self.worker = SearchWorker(query_vec, self.vector_db, top_k=self.max_excerpts)
         self.worker.progress.connect(self.progressBarSet)
         self.worker.result.connect(self.display_results)
