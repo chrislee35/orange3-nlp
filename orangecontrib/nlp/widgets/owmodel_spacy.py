@@ -8,16 +8,21 @@ import numpy as np
 class SpacyEmbedder(EmbedderModel):
     _thread_local = threading.local()
 
-    def __init__(self):
-        SpaCyDownloader.download("en_core_web_md")
-
-    def _get_model(self):
+    def _get_model(self, language):
         if not hasattr(self._thread_local, "model"):
-            self._thread_local.model = spacy.load("en_core_web_md")
-        return self._thread_local.model
+            self._thread_local.model = {}
+            
+        if language not in self._thread_local.model:
+            model_name = SpaCyDownloader.model_name(language)
+            try:
+                self._thread_local.model[language] = spacy.load(model_name)
+            except Exception as e:
+                SpaCyDownloader.download(model_name)
+                self._thread_local.model[language] = spacy.load(model_name)
+        return self._thread_local.model[language]
 
-    def embed(self, texts: list[str]) -> np.ndarray:
-        model = self._get_model()
+    def embed(self, language, texts: list[str]) -> np.ndarray:
+        model = self._get_model(language)
         return np.array([model(text).vector for text in texts], dtype="float32")
 
 class OWSpacyEmbedder(OWWidget):

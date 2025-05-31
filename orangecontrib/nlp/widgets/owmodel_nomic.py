@@ -13,7 +13,7 @@ class NomicEmbedder(EmbedderModel):
     def __init__(self, host: str = 'localhost', port: int = 11434):
         self.url = f"http://{host}:{port}/api/embeddings"
 
-    def embed(self, texts: list[str]) -> np.ndarray:
+    def embed(self, language, texts: list[str]) -> np.ndarray:
         embeddings = []
         for text in texts:
             response = requests.post(self.url, json={

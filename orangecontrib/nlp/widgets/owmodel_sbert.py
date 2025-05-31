@@ -10,7 +10,7 @@ class SBERTEmbedder(EmbedderModel):
         if SBERTEmbedder._model is None:
             SBERTEmbedder._model = SentenceTransformer("all-MiniLM-L6-v2")
 
-    def embed(self, texts: list[str]) -> np.ndarray:
+    def embed(self, language, texts: list[str]) -> np.ndarray:
         return SBERTEmbedder._model.encode(
             texts,
             convert_to_numpy=True,

@@ -1,6 +1,14 @@
 import requests
+from Orange.misc.environ import data_dir_base
+import os
 
 class UDPipeDownloader:
+    @staticmethod
+    def model_path(language_code: str) -> str:
+        model_dir = os.path.join(data_dir_base(), 'Orange', 'udpipe')
+        model_path = f"{model_dir}/{language_code}.udpipe"
+        return model_path
+
     @staticmethod
     def download(language_code: str) -> bool:
         UDPIPE_LANGUAGE_MODELS = {
@@ -67,7 +75,8 @@ class UDPipeDownloader:
 
         response = requests.get(model_url)
         response.raise_for_status()
-        model_path = f"{language_code}.udpipe"
+
+        model_path = UDPipeDownloader.model_path(language_code)
         with open(model_path, 'wb') as f:
             f.write(response.content)
         return True

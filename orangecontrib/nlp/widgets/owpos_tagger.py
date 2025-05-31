@@ -85,9 +85,10 @@ class StanzaPOSWorker(POSWorker):
 class UDPipePOSWorker(POSWorker):
     def run(self):
         from ufal.udpipe import Model, Pipeline
+        from Orange.misc.environ import data_dir_base
         import os
 
-        model_path = f"{self.language}.udpipe"
+        model_path = UDPipeDownloader.model_path(self.language)
         if not os.path.exists(model_path):
             self.progress.emit(1)
             # Attempt to download model from the standard UDPipe model repository

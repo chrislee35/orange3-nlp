@@ -3,7 +3,7 @@ from Orange.widgets.widget import Output, OWWidget
 import tensorflow_hub as hub
 
 class USEEmbedder(EmbedderModel):
-    def embed(self, texts):
+    def embed(self, language, texts):
         if not hasattr(self, "_model"):
             self._model = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
         embeddings = self._model(texts)

@@ -9,6 +9,7 @@ import gzip
 import shutil
 
 from orangecontrib.nlp.util.embedder_models import EmbedderModel
+from Orange.misc.environ import data_dir_base
 from Orange.widgets.widget import Output, OWWidget
 from Orange.widgets.settings import Setting
 from AnyQt.QtWidgets import (
@@ -19,19 +20,33 @@ from AnyQt.QtCore import Qt
 
 class FastTextEmbedder(EmbedderModel):
     _model = None
+    AVAILABLE_LANGUAGES = [
+        "af", "sq", "als", "am", "ar", "an", "hy", "as", "ast", "az", "ba", "eu", "bar", "be", "bn", "bh", "bpy", "bs", 
+        "br", "bg", "my", "ca", "ceb", "bcl", "ce", "zh", "cv", "co", "hr", "cs", "da", "dv", "nl", "pa", "arz", "eml", 
+        "en", "myv", "eo", "et", "hif", "fi", "fr", "gl", "ka", "de", "gom", "el", "gu", "ht", "he", "mrj", "hi", "hu", 
+        "is", "io", "ilo", "id", "ia", "ga", "it", "ja", "jv", "kn", "pam", "kk", "km", "ky", "ko", "ku", "ckb", "la", 
+        "lv", "li", "lt", "lmo", "nds", "lb", "mk", "mai", "mg", "ms", "ml", "mt", "gv", "mr", "mzn", "mhr", "min", 
+        "xmf", "mwl", "mn", "nah", "nap", "ne", "new", "frr", "nso", "no", "nn", "oc", "or", "os", "pfl", "ps", "fa", 
+        "pms", "pl", "pt", "qu", "ro", "rm", "ru", "sah", "sa", "sc", "sco", "gd", "sr", "sh", "scn", "sd", "si", "sk", 
+        "sl", "so", "azb", "es", "su", "sw", "sv", "tl", "tg", "ta", "tt", "te", "th", "bo", "tr", "tk", "uk", "hsb", 
+        "ur", "ug", "uz", "vec", "vi", "vo", "wa", "war", "cy", "vls", "fy", "pnb", "yi", "yo", "diq", "zea"
+    ]
 
-    def __init__(self, lang: str = "en", model_dir: str = "fasttext_models"):
-        self.lang = lang
-        self.model_dir = model_dir
-        os.makedirs(model_dir, exist_ok=True)
+    def __init__(self):
+        self.model_dir = os.path.join(data_dir_base(), 'Orange', 'fasttext')
+        os.makedirs(self.model_dir, exist_ok=True)
 
-        self.model_path = os.path.join(model_dir, f"cc.{lang}.300.bin")
-        if not os.path.exists(self.model_path):
-            self._download_model()
+    def embed(self, language, texts):
+        language = language or "en"
+        if language not in FastTextEmbedder.AVAILABLE_LANGUAGES:
+            raise Exception(f"{language} is unavailable from https://fasttext.cc/docs/en/crawl-vectors.html")
 
-    def embed(self, texts):
+        model_path = os.path.join(self.model_dir, f"cc.{language}.300.bin")
+        if not os.path.exists(model_path):
+            self._download_model(language, model_path)
+
         if FastTextEmbedder._model is None:
-            FastTextEmbedder._model = fasttext.load_model(self.model_path)
+            FastTextEmbedder._model = fasttext.load_model(model_path)
         embeddings = []
         for text in texts:
             words = text.strip().split()
@@ -44,23 +59,23 @@ class FastTextEmbedder(EmbedderModel):
         return np.array(embeddings, dtype="float32")
 
 
-    def _download_model(self):
-        print(f"Downloading FastText model for language '{self.lang}'...")
+    def _download_model(self, language, model_path):
+        print(f"Downloading FastText model for language '{language}'...")
 
-        url = f"https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.{self.lang}.300.bin.gz"
-        gz_path = self.model_path + ".gz"
+        url = f"https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.{language}.300.bin.gz"
+        gz_path = f"{model_path}.gz"
 
         try:
             urllib.request.urlretrieve(url, gz_path)
             print("Download complete. Extracting...")
 
-            with gzip.open(gz_path, 'rb') as f_in, open(self.model_path, 'wb') as f_out:
+            with gzip.open(gz_path, 'rb') as f_in, open(model_path, 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
 
             os.remove(gz_path)
-            print(f"Model saved to {self.model_path}")
+            print(f"Model saved to {model_path}")
         except Exception as e:
-            raise RuntimeError(f"Failed to download FastText model for '{self.lang}': {e}")
+            raise RuntimeError(f"Failed to download FastText model for '{language}': {e}")
 
 class OWFastTextEmbedder(OWWidget):
     name = "FastText Embedder"
@@ -72,26 +87,11 @@ class OWFastTextEmbedder(OWWidget):
         embedder = Output("Embedder", FastTextEmbedder, auto_summary=False)
 
     want_main_area = False
-    want_control_area = True
-
-    lang = Setting("en")
-    model_dir = Setting("fasttext_models")
+    want_control_area = False
  
     def __init__(self):
         super().__init__()
-        self.Outputs.embedder.send(FastTextEmbedder(self.lang))
-        self.layout_control_area()
-
-    def layout_control_area(self):
-        self.controlArea.layout().addWidget(QLabel("Language:"))
-        self.lang_input = QLineEdit(self.lang)
-        self.lang_input.editingFinished.connect(self.on_lang_changed)
-        self.controlArea.layout().addWidget(self.lang_input)
-        self.controlArea.layout().setAlignment(Qt.AlignTop)     
-
-    def on_lang_changed(self):
-        self.lang = self.lang_input.text()
-        self.Outputs.embedder.send(FastTextEmbedder(self.lang))
+        self.Outputs.embedder.send(FastTextEmbedder())
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview

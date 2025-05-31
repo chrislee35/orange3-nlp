@@ -12,7 +12,7 @@ class E5Embedder(EmbedderModel):
             E5Embedder._tokenizer = AutoTokenizer.from_pretrained("intfloat/e5-small-v2")
             E5Embedder._model = AutoModel.from_pretrained("intfloat/e5-small-v2")
 
-    def embed(self, texts: list[str]) -> np.ndarray:
+    def embed(self, language, texts: list[str]) -> np.ndarray:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = E5Embedder._model.to(device)
         tokenizer = E5Embedder._tokenizer

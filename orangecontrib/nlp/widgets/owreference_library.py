@@ -206,7 +206,7 @@ class OWReferenceLibrary(widget.OWWidget):
         self.stop_worker()
 
         self.progressBarInit()
-        query_vec = self.embedder.embed([self.query])
+        query_vec = self.embedder.embed(self.corpus.language, [self.query])
         self.worker = SearchWorker(query_vec, self.vector_db, top_k=self.max_excerpts)
         self.worker.progress.connect(self.progressBarSet)
         self.worker.result.connect(self.display_results)

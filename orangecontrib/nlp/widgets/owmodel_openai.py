@@ -12,7 +12,7 @@ class OpenAIEmbedder(EmbedderModel):
     def __init__(self, api_key):
         self.api_key = api_key
 
-    def embed(self, texts):
+    def embed(self, language, texts):
         openai.api_key = self.api_key
         response = openai.Embedding.create(
             input=texts,

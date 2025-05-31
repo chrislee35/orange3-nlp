@@ -1,5 +1,5 @@
 import spacy
-from spacy.cli import download
+from spacy.cli import download as spacy_download
 
 class SpaCyDownloader:
     @staticmethod
@@ -32,11 +32,18 @@ class SpaCyDownloader:
         language_code = language_code.lower()
         model_name = SPACY_LANGUAGE_MODELS.get(language_code, None)
         return model_name
+    
+    @staticmethod
+    def download_language(language_code: str) -> bool:
+        model_name = SpaCyDownloader.model_name(language_code)
+        if model_name is None: return False
+        SpaCyDownloader.download(model_name)
+        return True
 
     @staticmethod
     def download(model_name: str) -> bool:
         try:
-            download(model_name)
+            spacy_download(model_name)
         except Exception:
             return False
         return True

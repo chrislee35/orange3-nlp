@@ -28,7 +28,7 @@ class EmbedderWorker(QThread):
         idx = 0
         for i in range(0, total_documents, batch_size):
             batch = self.corpus.documents[i:i + batch_size]
-            vecs = self.embedder.embed(batch)
+            vecs = self.embedder.embed(self.corpus.language, batch)
             vectors.extend(vecs)
             idx += 1
             progress = int(100*(idx/total_batches))
