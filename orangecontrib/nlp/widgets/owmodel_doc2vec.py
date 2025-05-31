@@ -15,6 +15,8 @@ from pathlib import Path
 class Doc2VecEmbedder(EmbedderModel):
     def __init__(self, model_name):
         self.model_path = os.path.join(data_dir_base(), 'Orange', 'gensim', model_name+'.bin')
+        if not os.path.exists(self.model_path):
+            raise Exception(f"Model {model_name} not found.")
 
     def embed(self, language, texts):
         if not hasattr(self, "_model"):
@@ -39,7 +41,10 @@ class OWDoc2VecEmbedder(OWWidget):
         super().__init__()
         self.layout_control_area()
         if self.model_name:
-            self.Outputs.embedder.send(Doc2VecEmbedder(self.model_name))
+            try:
+                self.Outputs.embedder.send(Doc2VecEmbedder(self.model_name))
+            except Exception as e:
+                self.error_box.setPlainText(str(e))
 
     def layout_control_area(self):
         models = self.enumerate_models()

@@ -125,7 +125,7 @@ class OWTrainDoc2Vec(widget.OWWidget):
 
     def apply(self):
         if not self.corpus:
-            self.Outputs.data.send(None)
+            self.Outputs.embedder.send(None)
             return
 
         self.worker = Doc2VecTrainingWorker(
