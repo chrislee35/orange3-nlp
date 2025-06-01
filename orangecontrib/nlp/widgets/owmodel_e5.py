@@ -1,6 +1,7 @@
 from orangecontrib.nlp.util.embedder_models import EmbedderModel
 from Orange.widgets.widget import Output, OWWidget
 from transformers import AutoTokenizer, AutoModel
+import numpy as np
 
 # TODO: Make this thread safe
 class E5Embedder(EmbedderModel):
