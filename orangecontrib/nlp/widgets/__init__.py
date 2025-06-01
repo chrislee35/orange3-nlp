@@ -1,10 +1,11 @@
 """
-Ollama Widget
+NLP Widgets
 ===============
 
-Widgets for querying Tables using SQL
+Widgets for performing Natural Language Processing tasks
 """
 import sysconfig
+from orangecontrib.nlp.widgets.settings import APIKeySettings
 
 NAME = "NLP"
 DESCRIPTION = "NLP Widgets"

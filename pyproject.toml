@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "orange3-nlp"
-version = "0.0.3"
+version = "0.0.4"
 description = "A collection of Orange3 widgets to perform natural language processing"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -38,7 +38,8 @@ dependencies = [
     "gensim >= 4.3.3",
     "tensorflow >= 2.19.0",
     "tensorflow-hub >= 0.16.1",
-    "fasttext >= 0.9.3"
+    "fasttext >= 0.9.3",
+    "google-generativeai >= 0.8.5"
 ]
 
 [license]
@@ -64,7 +65,6 @@ namespaces = true
 
 [project.entry-points."orange.widgets"]
 nlp = "orangecontrib.nlp.widgets"
-embedders = "orangeconfig.nlp.widgets.embedders"
 
 [project.entry-points."orange3.addon"]
 orange3-nlp = "orangecontrib.nlp"

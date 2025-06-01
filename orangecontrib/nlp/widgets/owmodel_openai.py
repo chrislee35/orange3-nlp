@@ -1,17 +1,21 @@
-from orangecontrib.nlp.util.embedder_models import EmbedderModel
 from Orange.widgets.widget import Output, OWWidget
 from Orange.widgets.settings import Setting
 from AnyQt.QtWidgets import (
-    QLineEdit, QLabel, QComboBox
+    QLabel, QComboBox, QPushButton
 )
 from AnyQt.QtCore import Qt
+
+from orangecontrib.nlp.util.embedder_models import EmbedderModel
+from orangecontrib.nlp.util.apikeys import get_api_key
+from orangecontrib.nlp.widgets import APIKeySettings
+
 import numpy as np
 import openai
 from typing import get_args
 
 class OpenAIEmbedder(EmbedderModel):
-    def __init__(self, api_key, model="text-embedding-3-small"):
-        self.api_key = api_key
+    def __init__(self, model="text-embedding-3-small"):
+        self.api_key = get_api_key("openai")
         self.model = model
 
     def embed(self, language, texts):
@@ -34,7 +38,6 @@ class OWOpenAIEmbedder(OWWidget):
     want_main_area = False
     want_control_area = True
 
-    api_key = Setting("")
     openai_model = Setting("text-embedding-3-small")
  
     def __init__(self):
@@ -43,10 +46,9 @@ class OWOpenAIEmbedder(OWWidget):
         self.update()
 
     def layout_control_area(self):
-        self.controlArea.layout().addWidget(QLabel("API Key:"))
-        self.api_key_input = QLineEdit(self.api_key)
-        self.api_key_input.editingFinished.connect(self.on_api_key_changed)
-        self.controlArea.layout().addWidget(self.api_key_input)
+        btn = QPushButton("Configure API Keys...")
+        btn.clicked.connect(self.show_apikey_settings)
+        self.controlArea.layout().addWidget(btn)
 
         embedding_models = get_args(openai.types.EmbeddingModel)
         self.model_combo = QComboBox()
@@ -59,20 +61,23 @@ class OWOpenAIEmbedder(OWWidget):
         
         self.controlArea.layout().setAlignment(Qt.AlignTop)
 
-    def on_api_key_changed(self):
-        self.api_key = self.api_key_input.text()
-        self.update()
+    def show_apikey_settings(self):
+        dlg = APIKeySettings(self)
+        dlg.show()
+        status = dlg.exec()
+        if status == 0:
+            self.update()
 
     def on_change_model(self, val):
         self.openai_model = val
         self.update()
 
     def update(self):
-        if self.api_key and self.openai_model:
-            self.Outputs.embedder.send(OpenAIEmbedder(self.api_key, self.openai_model))
+        api_key = get_api_key("openai")
+        if api_key and self.openai_model:
+            self.Outputs.embedder.send(OpenAIEmbedder(api_key, self.openai_model))
         else:
             self.Outputs.embedder.send(None)
-            print("None")
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
