@@ -39,7 +39,8 @@ dependencies = [
     "tensorflow >= 2.19.0",
     "tensorflow-hub >= 0.16.1",
     "fasttext >= 0.9.3",
-    "google-generativeai >= 0.8.5"
+    "google-generativeai >= 0.8.5",
+    "PyQtWebEngine >= 5.15.7"
 ]
 
 [license]

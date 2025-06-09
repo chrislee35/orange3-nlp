@@ -1,3 +1,5 @@
+import numpy as np
+
 from AnyQt.QtWidgets import (
     QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QComboBox,
     QLabel, QTextEdit, QSpinBox, QDoubleSpinBox, QWidget
@@ -5,10 +7,9 @@ from AnyQt.QtWidgets import (
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
-from Orange.data import Domain, StringVariable, Table, ContinuousVariable
+from Orange.data import Domain, Table, ContinuousVariable
 from orangecontrib.text.corpus import Corpus
 from orangecontrib.nlp.util.embedder_models import EmbedderModel
-import numpy as np
 
 class EmbedderWorker(QThread):
     result = pyqtSignal(Corpus)  # emits the embedded Corpus
@@ -92,7 +93,7 @@ class OWTextEmbedder(widget.OWWidget):
     
     def run_embedder(self):
         if self.corpus and not self.embedder:
-            self.Error.add_message("You much connect an embedder")
+            self.error("You must connect an embedder")
             return
         if not (self.corpus and self.embedder):
             return

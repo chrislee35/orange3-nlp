@@ -1,12 +1,14 @@
-from AnyQt.QtWidgets import QLabel, QVBoxLayout, QSizePolicy, QWidget, QTableWidget, QTableWidgetItem, QHeaderView
-from AnyQt.QtCore import Qt
-from Orange.widgets import widget
-from Orange.widgets.widget import Input
-from orangecontrib.text.corpus import Corpus
 import json
 import spacy
 from spacy import displacy
+
+from AnyQt.QtWidgets import QLabel, QVBoxLayout, QSizePolicy, QWidget, QTableWidget, QTableWidgetItem, QHeaderView
+from AnyQt.QtCore import Qt
 from PyQt5.QtWebEngineWidgets import QWebEngineView
+
+from Orange.widgets import widget
+from Orange.widgets.widget import Input
+from orangecontrib.text.corpus import Corpus
 from orangecontrib.nlp.util import SpaCyDownloader
 
 
