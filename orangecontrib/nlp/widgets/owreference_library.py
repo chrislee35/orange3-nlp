@@ -61,8 +61,8 @@ class VectorDB(QThread):
         if self.index is None:
             return []
         #faiss.normalize_L2(query_vec)
-        D, I = self.index.search(query_vec, top_k)
-        return [(self.corpus.documents[i], float(D[0][j])) for j, i in enumerate(I[0]) if i < len(self.corpus.documents)]
+        distances, indices = self.index.search(query_vec, top_k)
+        return [(self.corpus.documents[i], float(distances[0][j])) for j, i in enumerate(indices[0]) if i < len(self.corpus.documents)]
 
     def cancel(self):
         self._cancelled = True
