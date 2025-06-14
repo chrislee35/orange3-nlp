@@ -7,7 +7,7 @@ from AnyQt.QtCore import Qt
 
 from orangecontrib.nlp.util.embedder_models import EmbedderModel
 from orangecontrib.nlp.util.apikeys import get_api_key
-from orangecontrib.nlp.widgets.settings import APIKeySettings
+from orangecontrib.nlp.widgets.settings.apikey_preferences import APIKeySettings
 
 import numpy as np
 import openai
