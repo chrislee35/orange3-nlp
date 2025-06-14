@@ -1,10 +1,9 @@
-from AnyQt.QtWidgets import QLabel, QVBoxLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QComboBox, QWidget, QGridLayout
-from AnyQt.QtCore import QThread, pyqtSignal, Qt
+from AnyQt.QtWidgets import QLabel, QRadioButton, QButtonGroup, QPushButton
+from AnyQt.QtCore import QThread, pyqtSignal
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
 from Orange.data import StringVariable
 from orangecontrib.text.corpus import Corpus
-import numpy as np
 import json
 from orangecontrib.nlp.util import SpaCyDownloader, UDPipeDownloader
 
@@ -85,7 +84,6 @@ class StanzaPOSWorker(POSWorker):
 class UDPipePOSWorker(POSWorker):
     def run(self):
         from ufal.udpipe import Model, Pipeline
-        from Orange.misc.environ import data_dir_base
         import os
 
         model_path = UDPipeDownloader.model_path(self.language)

@@ -1,10 +1,9 @@
-from AnyQt.QtWidgets import QLabel, QVBoxLayout, QGridLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QComboBox, QWidget
+from AnyQt.QtWidgets import QLabel, QVBoxLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QComboBox, QWidget
 from AnyQt.QtCore import QThread, pyqtSignal, Qt
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
 from Orange.data import StringVariable
 from orangecontrib.text.corpus import Corpus
-import numpy as np
 import json
 import requests
 

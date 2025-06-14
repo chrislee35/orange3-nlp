@@ -1,5 +1,5 @@
-from AnyQt.QtWidgets import QLabel, QVBoxLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QCheckBox, QTextEdit, QTableWidget, QHeaderView, QTableWidgetItem
-from AnyQt.QtCore import QThread, pyqtSignal, Qt
+from AnyQt.QtWidgets import QPushButton, QLineEdit, QCheckBox, QTextEdit, QTableWidget, QHeaderView, QTableWidgetItem
+from AnyQt.QtCore import QThread, pyqtSignal
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
 from Orange.data import StringVariable

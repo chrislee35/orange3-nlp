@@ -2,8 +2,7 @@ import json
 import spacy
 from spacy import displacy
 
-from AnyQt.QtWidgets import QLabel, QVBoxLayout, QSizePolicy, QWidget, QTableWidget, QTableWidgetItem, QHeaderView
-from AnyQt.QtCore import Qt
+from AnyQt.QtWidgets import QSizePolicy, QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 from Orange.widgets import widget
@@ -49,8 +48,6 @@ class OWPOSViewer(widget.OWWidget):
         self.webview = QWebEngineView(self)
         self.webview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.webview.setAutoFillBackground(True)
-        palette = self.palette()
-        bg_color = palette.window().color().name()
 
         layout = self.mainArea.layout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -98,7 +95,7 @@ class OWPOSViewer(widget.OWWidget):
             if not SpaCyDownloader.download(model_name):
                 self.webview.setHtml(f"<h3>spaCy {self.corpus.language} model not found.</h3>")
                 return
-            nlp = space.load(model_name)
+            nlp = spacy.load(model_name)
 
         # Find the POS Tags column
         pos_column = None

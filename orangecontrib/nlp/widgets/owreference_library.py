@@ -1,6 +1,5 @@
 from AnyQt.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QComboBox,
-    QLabel, QTextEdit, QSpinBox, QDoubleSpinBox, QWidget
+    QHBoxLayout, QLineEdit, QPushButton, QLabel, QTextEdit, QSpinBox, QDoubleSpinBox
 )
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
 from Orange.widgets import widget, settings
@@ -9,7 +8,6 @@ from Orange.data import Domain, StringVariable, Table
 from orangecontrib.text.corpus import Corpus
 from orangecontrib.nlp.util.embedder_models import EmbedderModel
 import numpy as np
-import uuid
 import faiss
 
 class VectorDB(QThread):

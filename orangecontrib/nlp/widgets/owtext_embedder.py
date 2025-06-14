@@ -1,11 +1,7 @@
 import numpy as np
 
-from AnyQt.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QComboBox,
-    QLabel, QTextEdit, QSpinBox, QDoubleSpinBox, QWidget
-)
-from AnyQt.QtCore import Qt, QThread, pyqtSignal
-from Orange.widgets import widget, settings
+from AnyQt.QtCore import QThread, pyqtSignal
+from Orange.widgets import widget
 from Orange.widgets.widget import Input, Output
 from Orange.data import Domain, Table, ContinuousVariable
 from orangecontrib.text.corpus import Corpus

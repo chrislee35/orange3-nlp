@@ -7,7 +7,7 @@ from AnyQt.QtWidgets import (
 )
 from AnyQt.QtCore import Qt
 
-from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+from gensim.models.doc2vec import Doc2Vec
 import numpy as np
 import os
 from pathlib import Path

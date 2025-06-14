@@ -1,16 +1,15 @@
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from gensim.utils import simple_preprocess
-from AnyQt.QtWidgets import QLabel
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
-from Orange.data import Domain, Table
 from orangecontrib.text.corpus import Corpus
 from orangecontrib.nlp.util.embedder_models import EmbedderModel
 from Orange.misc.environ import data_dir_base
 import numpy as np
 import multiprocessing
 import os
+import datetime
 
 class Doc2VecEmbedder(EmbedderModel):
     def __init__(self, model: Doc2Vec):
@@ -44,7 +43,8 @@ class Doc2VecTrainingWorker(QThread):
         self.corpus = corpus
         
         workers = multiprocessing.cpu_count() - 2
-        if workers < 1: workers = 1
+        if workers < 1:
+            workers = 1
         self.model = Doc2Vec(dm=1, dm_mean=1,
             vector_size=vector_size, window=window, epochs=epochs, workers=workers, max_final_vocab=max_final_vocab
         )

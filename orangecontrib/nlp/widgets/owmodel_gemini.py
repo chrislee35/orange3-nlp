@@ -1,5 +1,4 @@
 from Orange.widgets.widget import OWWidget, Output
-from Orange.widgets.settings import Setting
 from AnyQt.QtWidgets import QPushButton
 from AnyQt.QtCore import Qt
 from orangecontrib.nlp.util.embedder_models import EmbedderModel

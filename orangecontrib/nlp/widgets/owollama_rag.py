@@ -1,6 +1,6 @@
 from AnyQt.QtWidgets import (
-    QVBoxLayout, QHBoxLayout, QLineEdit, QPushButton, QComboBox,
-    QLabel, QTextEdit, QSpinBox, QDoubleSpinBox
+    QHBoxLayout, QLineEdit, QPushButton, QComboBox,
+    QLabel, QTextEdit, QSpinBox
 )
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
 from Orange.widgets import widget, settings
@@ -32,7 +32,7 @@ class OllamaWorker(QThread):
             prompt = f"{self.prompt}\n\nReferences:\n{self.references}"
             data = json.dumps({"model": self.model, "prompt": prompt})
             url = f"http://{self.host}:{self.port}/api/generate"
-            with requests.post(f"http://{self.host}:{self.port}/api/generate", headers=headers, data=data, stream=True, timeout=60) as response:
+            with requests.post(url, headers=headers, data=data, stream=True, timeout=60) as response:
                 if response.status_code == 200:
                     output = ""
                     for line in response.iter_lines():

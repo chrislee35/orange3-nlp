@@ -77,6 +77,8 @@ class UDPipeDownloader:
         response.raise_for_status()
 
         model_path = UDPipeDownloader.model_path(language_code)
+        if not os.path.exists(os.path.dirname(model_path)):
+            os.path.makedirs(os.path.dirname(model_path))
         with open(model_path, 'wb') as f:
             f.write(response.content)
         return True

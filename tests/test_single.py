@@ -47,6 +47,9 @@ class TestNLPWidget(WidgetTest):
         elif widget_name == 'OWPOSTagger':
             from orangecontrib.nlp.widgets.owpos_tagger import OWPOSTagger
             widget_class = OWPOSTagger
+        elif widget_name == 'OWTextEmbedder':
+            from orangecontrib.nlp.widgets.owtext_embedder import OWTextEmbedder
+            widget_class = OWTextEmbedder
         self.widget = self.create_widget(widget_class)
         # Get input signal names
         self.input_names = [signal.name for signal in self.widget.Inputs.__dict__.values() if hasattr(signal, 'name')]
@@ -62,6 +65,8 @@ class TestNLPWidget(WidgetTest):
     def test_with_sample_and_settings(self):
         for k,v in args.items():
             if hasattr(self.widget, k):
+                if k == 'embedder':
+                    v = self.get_embedder(v)
                 setattr(self.widget, k, v)
         if hasattr(self.widget, 'update_progress'):
             self.widget.update_progress = print_progress
@@ -72,6 +77,38 @@ class TestNLPWidget(WidgetTest):
             output = self.get_output(self.widget.Outputs.data, wait=3000)
         self.assertIsNotNone(output)
         self.assertEqual(self.output_count_expected, len(output))
+
+    def get_embedder(self, name):
+        if name == 'Doc2VecEmbedder':
+            from orangecontrib.nlp.widgets.owmodel_doc2vec import Doc2VecEmbedder
+            emb = Doc2VecEmbedder
+        elif name == 'E5Embedder':
+            from orangecontrib.nlp.widgets.owmodel_e5 import E5Embedder
+            emb = E5Embedder
+        elif name == 'FastTextEmbedder':
+            from orangecontrib.nlp.widgets.owmodel_fasttext import FastTextEmbedder
+            emb = FastTextEmbedder
+        elif name == 'GeminiEmbedder':
+            from orangecontrib.nlp.widgets.owmodel_gemini import GeminiEmbedder
+            emb = GeminiEmbedder
+        elif name == 'NomicEmbedder':
+            from orangecontrib.nlp.widgets.owmodel_nomic import NomicEmbedder
+            emb = NomicEmbedder
+        elif name == 'OpenAIEmbedder':
+            from orangecontrib.nlp.widgets.owmodel_openai import OpenAIEmbedder
+            emb = OpenAIEmbedder
+        elif name == 'SBERTEmbedder':
+            from orangecontrib.nlp.widgets.owmodel_sbert import SBERTEmbedder
+            emb = SBERTEmbedder
+        elif name == 'SpacyEmbedder':
+            from orangecontrib.nlp.widgets.owmodel_spacy import SpacyEmbedder
+            emb = SpacyEmbedder
+        elif name == 'USEEmbedder':
+            from orangecontrib.nlp.widgets.owmodel_use import USEEmbedder
+            emb = USEEmbedder
+        else:
+            raise Exception(f"Unknown embedder: {name}")
+        return emb()
 
 if __name__ == "__main__":
     unittest.main()

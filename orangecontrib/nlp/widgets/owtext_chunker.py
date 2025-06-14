@@ -1,4 +1,4 @@
-from AnyQt.QtWidgets import QComboBox, QLabel, QSizePolicy, QVBoxLayout
+from AnyQt.QtWidgets import QComboBox, QLabel
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output

@@ -1,12 +1,10 @@
-from AnyQt.QtWidgets import QLabel, QVBoxLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QComboBox, QWidget, QGridLayout
+from AnyQt.QtWidgets import QLabel, QVBoxLayout, QRadioButton, QButtonGroup, QPushButton, QLineEdit, QComboBox, QWidget
 from AnyQt.QtCore import QThread, pyqtSignal, Qt
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
 from Orange.data import StringVariable
 from orangecontrib.text.corpus import Corpus
 from orangecontrib.nlp.util.sentence_truncate import truncate_at_sentence
-import numpy as np
-import json
 import requests
 
 class SummaryWorker(QThread):

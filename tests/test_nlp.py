@@ -18,16 +18,29 @@ test_combos = [
     ['OWPOSTagger', 'friends-transcripts', '10', 'selected_framework', 'Stanza'],
     ['OWPOSTagger', 'friends-transcripts', '10', 'selected_framework', 'UDPipe'],
     ['OWQuestionAnswer', 'andersen', '1', 'question', "Who's the bad guy?"], # times out
-    ['OWReferenceLibrary', 'book-excerpts', '1', 'embedder', 'sentence-transformers', 'query', 'farming'],
-    ['OWReferenceLibrary', 'book-excerpts', '1', 'embedder', 'e5-small-v2', 'query', 'farming'],
-    ['OWReferenceLibrary', 'book-excerpts', '1', 'embedder', 'nomic-embed-text', 'query', 'farming'],
-    ['OWReferenceLibrary', 'book-excerpts', '1', 'embedder', 'spacy', 'query', 'farming'],
+    ['OWReferenceLibrary', 'book-excerpts', '1', 'embedder', 'SBERTEmbedder', 'query', 'farming'],
     # I do the Ollama models together since the server component will cache the model between processes, but only for a few minutes
     ['OWAbstractiveSummary', 'book-excerpts', '1', 'selected_framework', 'Ollama', 'selected_model', 'phi:latest'],
     ['OWExtractiveSummary', 'book-excerpts', '1', 'selected_framework', 'Ollama', 'selected_model', 'phi:latest'],
     ['OWNERWidget', 'friends-transcripts', '10', 'selected_framework', 'Ollama', 'selected_model', 'phi:latest'],
     ['OWOllamaRAG', 'book-excerpts', '1', 'model', 'phi:latest', 'prompt', 'who died?']
 ]
+
+embedders = [
+    #"Doc2VecEmbedder",
+    "E5Embedder",
+    "FastTextEmbedder",
+    "GeminiEmbedder",
+    "NomicEmbedder",
+    "OpenAIEmbedder",
+    "SBERTEmbedder",
+    "SpacyEmbedder",
+    "USEEmbedder",
+]
+
+test_combos = []
+for emb in embedders:
+    test_combos.append( ['OWTextEmbedder', 'book-excerpts', '1', 'embedder', emb] )
 
 for combo in test_combos:
     now = time.strftime("%Y-%m-%d %H:%M:%S")

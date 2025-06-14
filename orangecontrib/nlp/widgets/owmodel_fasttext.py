@@ -3,19 +3,12 @@ import numpy as np
 import os
 import urllib.request
 import fasttext
-from pathlib import Path
-from zipfile import ZipFile
 import gzip
 import shutil
 
 from orangecontrib.nlp.util.embedder_models import EmbedderModel
 from Orange.misc.environ import data_dir_base
 from Orange.widgets.widget import Output, OWWidget
-from Orange.widgets.settings import Setting
-from AnyQt.QtWidgets import (
-    QLineEdit, QLabel
-)
-from AnyQt.QtCore import Qt
 
 
 class FastTextEmbedder(EmbedderModel):

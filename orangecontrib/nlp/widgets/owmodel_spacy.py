@@ -16,7 +16,7 @@ class SpacyEmbedder(EmbedderModel):
             model_name = SpaCyDownloader.model_name(language)
             try:
                 self._thread_local.model[language] = spacy.load(model_name)
-            except Exception as e:
+            except Exception:
                 SpaCyDownloader.download(model_name)
                 self._thread_local.model[language] = spacy.load(model_name)
         return self._thread_local.model[language]
