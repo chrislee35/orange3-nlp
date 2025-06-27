@@ -48,6 +48,10 @@ def widget_process_test(widget_cls_name, settings, queue):
             from orangecontrib.nlp.widgets.owpos_tagger import OWPOSTagger
             widget_class = OWPOSTagger
             input_data = make_sample('friends-transcripts', 10)
+        elif widget_cls_name == 'OWAnalizaSentymentu':
+            from orangecontrib.nlp.widgets.owanaliza_sentymentu import OWAnalizaSentymentu
+            widget_class = OWAnalizaSentymentu
+            input_data = make_sample('datasets/recenzja_produktu.tab', 10)
 
         output_count_expected = len(input_data)
         if widget_cls_name == 'OWOllamaRAG':

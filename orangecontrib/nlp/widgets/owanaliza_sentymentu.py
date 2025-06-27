@@ -28,7 +28,7 @@ class SentimentWorker(QThread):
 class OWAnalizaSentymentu(widget.OWWidget):
     name = "Analiza Sentymentu"
     description = "Analiza sentymentu tekstu w języku polskim."
-    icon = "icons/sentiment.svg"  # You can create or add an icon here
+    icon = "icons/nlp-analiza-sentymentu.svg"
     priority = 10
 
     want_main_area = False
@@ -81,4 +81,4 @@ if __name__ == "__main__":
     full_corpus = Corpus("tests/polish.tab")
     indices = random.sample(range(len(full_corpus)), 10)
     sample_corpus = full_corpus[indices]
-    WidgetPreview(OWAnalizaSentymentu).run(sample_corpus)    
+    WidgetPreview(OWAnalizaSentymentu).run(sample_corpus)

@@ -50,6 +50,10 @@ class TestNLPWidget(WidgetTest):
         elif widget_name == 'OWTextEmbedder':
             from orangecontrib.nlp.widgets.owtext_embedder import OWTextEmbedder
             widget_class = OWTextEmbedder
+        elif widget_name == 'OWAnalizaSentymentu':
+            from orangecontrib.nlp.widgets.owanaliza_sentymentu import OWAnalizaSentymentu
+            widget_class = OWAnalizaSentymentu
+            
         self.widget = self.create_widget(widget_class)
         # Get input signal names
         self.input_names = [signal.name for signal in self.widget.Inputs.__dict__.values() if hasattr(signal, 'name')]
