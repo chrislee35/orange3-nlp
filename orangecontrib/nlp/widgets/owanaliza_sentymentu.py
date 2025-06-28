@@ -1,5 +1,5 @@
 import Orange.data
-from Orange.widgets import widget, settings, gui
+from Orange.widgets import widget
 from Orange.widgets.widget import Input, Output
 from orangecontrib.text import Corpus
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -64,7 +64,6 @@ class OWAnalizaSentymentu(widget.OWWidget):
 
     def handle_result(self, scores):
         # Prepare new columns
-        new_domain = self.data.domain
         new_data = self.data.copy()
 
         values = np.array(scores)
@@ -78,7 +77,7 @@ if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
     import random
 
-    full_corpus = Corpus("tests/polish.tab")
+    full_corpus = Corpus("datasets/recenzja_produktu.tab")
     indices = random.sample(range(len(full_corpus)), 10)
     sample_corpus = full_corpus[indices]
     WidgetPreview(OWAnalizaSentymentu).run(sample_corpus)

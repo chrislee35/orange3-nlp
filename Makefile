@@ -23,3 +23,9 @@ clean:
 
 test:
 	python tests/test_nlp.py
+
+ruff:
+	ruff check orangecontrib/nlp/widgets/*.py
+
+pylint:
+	pylint orangecontrib/nlp/widgets/*.py
