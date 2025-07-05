@@ -5,16 +5,18 @@ from Orange.widgets.widget import Input, Output
 from Orange.data import Domain, StringVariable, Table
 from orangecontrib.text.corpus import Corpus
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from semantic_text_splitter import TextSplitter
 import numpy as np
 
 class TextChunkerWorker(QThread):
     result = pyqtSignal(Corpus)
     progress = pyqtSignal(int)
 
-    def __init__(self, corpus: Corpus, chunk_size: int):
+    def __init__(self, corpus: Corpus, chunk_size: int, chunk_strategy: str):
         super().__init__()
         self.corpus = corpus
         self.chunk_size = chunk_size
+        self.chunk_strategy = chunk_strategy
         self._cancelled = False
 
     def cancel(self):
@@ -23,18 +25,24 @@ class TextChunkerWorker(QThread):
     def run(self):
         corpus = self.corpus
         chunk_size = self.chunk_size
-
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size,
-            chunk_overlap=int(chunk_size * 0.1)
-        )
+        
+        if self.chunk_strategy == 'recursive':
+            splitter = RecursiveCharacterTextSplitter(
+                chunk_size=chunk_size,
+                chunk_overlap=int(chunk_size * 0.1)
+            )
+        elif self.chunk_strategy == 'semantic':
+            splitter = TextSplitter(chunk_size)
 
         documents = []
         metas = []
 
         n_docs = len(corpus.documents)
         for idx, doc in enumerate(corpus.documents):
-            chunks = splitter.split_text(doc)
+            if hasattr(splitter, 'split_text'):
+                chunks = splitter.split_text(doc)
+            elif hasattr(splitter, 'chunks'):
+                chunks = splitter.chunks(doc)
             documents.extend(chunks)
             metas.extend([[idx]] * len(chunks))
             self.progress.emit(int((idx + 1) / n_docs * 100))
@@ -66,6 +74,7 @@ class OWTextChunker(widget.OWWidget):
         data = Output("Chunked Corpus", Corpus)
 
     chunk_size = settings.Setting(256)
+    chunk_strategy = settings.Setting("recursive")
     want_main_area = False
 
     def __init__(self):
@@ -81,6 +90,12 @@ class OWTextChunker(widget.OWWidget):
         layout = self.controlArea.layout()
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(5)
+        layout.addWidget(QLabel("Chunking Strategy"))
+        self.chunk_strategy_combo = QComboBox()
+        self.chunk_strategy_combo.addItems(['recursive', 'semantic'])
+        self.chunk_strategy_combo.setCurrentText(self.chunk_strategy)
+        self.chunk_strategy_combo.currentTextChanged.connect(self.on_chunk_strategy_change)
+        layout.addWidget(self.chunk_strategy_combo)
         layout.addWidget(QLabel("Chunk size:"))
         self.chunk_size_combo = QComboBox()
         self.chunk_size_combo.addItems(["128", "256", "512", "1024"])
@@ -98,13 +113,17 @@ class OWTextChunker(widget.OWWidget):
         self.chunk_size = int(val)
         self.apply()
 
+    def on_chunk_strategy_change(self, val):
+        self.chunk_strategy = val
+        self.apply()
+
     def apply(self):
         if not self.corpus:
             self.Outputs.data.send(None)
             return
 
         self.progressBarInit()
-        self.worker = TextChunkerWorker(self.corpus, self.chunk_size)
+        self.worker = TextChunkerWorker(self.corpus, self.chunk_size, self.chunk_strategy)
         self.worker.progress.connect(self.progressBarSet)
         self.worker.result.connect(self.finished_chunking)
         self.setStatusMessage("Chunking...")

@@ -66,7 +66,7 @@ def widget_process_test(widget_cls_name, settings, queue):
 
         for name, output_signal in widget.Outputs.__dict__.items():
             if isinstance(output_signal, Output):
-                print(name)
+                #print(name)
                 output = widget.outputs.get(name)
                 if not output_not_none(name, output):
                     queue.put((False, f"{widget.name} output {name} is None"))

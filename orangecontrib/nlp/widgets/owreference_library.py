@@ -241,10 +241,10 @@ class OWReferenceLibrary(widget.OWWidget):
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
-    from orangecontrib.nlp.widgets.owtext_embedder import EmbedderFactory
+    from orangecontrib.nlp.widgets.owmodel_sbert import SBERTEmbedder
 
-    corpus = Corpus('tests/book-excerpts-embedded.tab')
-    embed_func = EmbedderFactory.get_embedder("sentence-transformers")
+    corpus = Corpus('datasets/book-excerpts-embedded.tab')
+    embed_func = SBERTEmbedder()
 
     w = WidgetPreview(OWReferenceLibrary)
     w.create_widget()

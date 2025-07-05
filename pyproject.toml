@@ -42,7 +42,8 @@ dependencies = [
     "google-generativeai >= 0.8.5",
     "PyQtWebEngine >= 5.15.7",
     "sacremoses >= 0.1.1",
-    "sentimentpl >= 0.0.6"
+    "sentimentpl >= 0.0.6",
+    "semantic-text-splitter >= 0.27.0"
 ]
 
 [license]
