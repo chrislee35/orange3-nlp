@@ -27,5 +27,8 @@ test:
 ruff:
 	ruff check orangecontrib/nlp/widgets/*.py
 
+ruff-fix:
+	ruff check --fix orangecontrib/nlp/widgets/*.py
+
 pylint:
 	pylint orangecontrib/nlp/widgets/*.py

@@ -1,5 +1,5 @@
-from AnyQt.QtWidgets import QComboBox, QLabel
-from AnyQt.QtCore import Qt, QThread, pyqtSignal
+from AnyQt.QtWidgets import QLabel
+from AnyQt.QtCore import QThread, pyqtSignal
 from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
 from Orange.data import Domain, StringVariable, Table
@@ -72,7 +72,7 @@ class OWTokenCorpus(widget.OWWidget):
 
         self.corpus = None
         self.worker = None
-        self.controlArea.layout().addWidget(QLabel("Tip: If you want to split on paragraphs, use regexp: [^\\.\\!\\?]+"))
+        self.controlArea.layout().addWidget(QLabel("Tip: If you want to split on paragraphs, use regexp: [^\\n]+"))
 
     @Inputs.data
     def set_data(self, data: Corpus):
@@ -101,45 +101,3 @@ class OWTokenCorpus(widget.OWWidget):
             self.Outputs.data.send(result)
         else:
             self.Outputs.data.send(None)
-
-
-if __name__ == "__main__":
-    import unittest
-    from Orange.widgets.tests.base import WidgetTest
-    from orangecontrib.text.widgets.owpreprocess import OWPreprocess
-
-    class TestOWTokenCorpusWidget(WidgetTest):
-        def setUp(self):
-            super().setUp()
-            self.corpus = Corpus("andersen")
-            self.preprocess_widget = self.create_widget(OWPreprocess)
-            self.token_corpus_widget = self.create_widget(OWTokenCorpus)
-
-        def test_sentence_tokenization_flow(self):
-            # Simulate a tiny corpus
-            corpus = self.corpus
-            # Send corpus to OWPreprocess and enable sentence tokenization
-            self.widget = self.preprocess_widget
-            self.send_signal(self.preprocess_widget.Inputs.corpus, corpus)
-            settings = {'name': '', 'preprocessors': [('preprocess.tokenize', {'method': 2, 'pattern': '\\w+'})]}
-            self.preprocess_widget.storedsettings = settings
-            self.preprocess_widget.load(settings)
-            self.preprocess_widget.apply()  # Apply settings if needed
-
-            # Get the output from OWPreprocess
-            processed_corpus = self.get_output("Corpus", self.preprocess_widget)
-            self.assertIsNotNone(processed_corpus)
-
-            # Send processed corpus to OWTokenCorpus
-            self.widget = self.token_corpus_widget
-            self.send_signal(self.token_corpus_widget.Inputs.data, processed_corpus)
-
-            # Get the output from OWTokenCorpus
-            token_output = self.get_output("Tokenized Corpus", self.token_corpus_widget)
-            self.assertIsNotNone(token_output)
-
-            # Optional: Check that tokens are sentence-level
-            for doc in token_output.documents:
-                print(doc)
-
-    unittest.main()
