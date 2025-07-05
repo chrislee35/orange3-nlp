@@ -93,6 +93,7 @@ class OWTextEmbedder(widget.OWWidget):
             return
         if not (self.corpus and self.embedder):
             return
+        self.error("")
         self.worker = EmbedderWorker(self.corpus, self.embedder)
         self.progressBarInit()
         self.worker.progress.connect(self.progressBarSet)

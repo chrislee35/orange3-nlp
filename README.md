@@ -8,16 +8,46 @@ Within the Add-ons installer, click on "Add more..." and type in orange3-nlp
 
 ## Widgets
 
-![Canvas with all 8 widgets provided by the Orange3-NLP package](imgs/nlp-widget-lineup.png)
+![Canvas with 8 major widgets provided by the Orange3-NLP package](imgs/nlp-widget-lineup.png)
 
-* Abstractive Summary
-* Extractive Summary
-* Named Entity Recognition
-* POS Tagger
-* POS Viewer
-* Question Answering
-* Reference Library
-* Ollama RAG
+* General Widgets
+  * Abstractive Summary
+  * Extractive Summary
+  * Named Entity Recognition
+  * POS Tagger
+  * POS Viewer
+  * Question Answering
+  * Reference Library
+  * Ollama RAG
+
+![Text Splitting Widgets](imgs/nlp-text-splitting.png)
+
+* Text Splitting Widgets
+  * Text Chunker
+  * Tokens to Corpus
+
+![Text Embedding Models](imgs/nlp-embedder-lineup.png)
+
+* Text Embedding Models
+  * Doc2Vec
+  * E5
+  * FastText
+  * Gemini
+  * Nomic
+  * OpenAI
+  * Sentence Embedder (SBERT)
+  * spaCy
+  * USE
+
+![Training widget for Doc2Vec embedder](imgs/nlp-train-doc2vec.png)
+
+* Training of Text Embedding Widget
+  * Train Doc2Vec
+
+![Polish sentiment analysis widget, Analiza Sentymentu](imgs/nlp-analiza-sentymentu.png)
+
+* For Polish Sentiment Analysis
+  * Analiza Sentymentu
 
 ### Summary Widgets
 
@@ -67,6 +97,20 @@ This uses spaCy's displacy HTML renderer to provide a parsed dependency tree of 
 
 ![Question and Answers for "Who Died?" against the Book Excerpts corpus](imgs/qa.png)
 
+### Text Splitting Widgets
+
+#### Tokens to Corpus
+
+The Tokens to Corpus widget takes the tokens from the Preprocess Text widgets.
+
+![Tokens to Corpus workflow](imgs/nlp-tokens-to-corpus-workflow.png)
+
+#### Text Chunker
+
+Text Chunker supports 2 chunking strategies to split text.  The first is [LangChain's RecursiveCharacterTextSplitter](https://lagnchain.readthedocs.io/en/stable/modules/indexes/text_splitters/examples/recursive_text_splitter.html) and the second is [semantic-text-splitter](https://pypi.org/project/semantic-text-splitter/).
+
+![Text Chunker widget](imgs/nlp-text-chunker.png)
+
 
 ### Reference Augmented Generation
 
@@ -76,13 +120,18 @@ This uses spaCy's displacy HTML renderer to provide a parsed dependency tree of 
 - **Augments** the prompt to the LLM by including this retrieved content.
 - **Generates** a more accurate and grounded answer based on the context.
 
-![RAG Workflow](imgs/rag-workflow.png)
+![RAG Workflow](imgs/nlp-rag-workflow.png)
 
 Let's take a look at the Reference Library
 
-![Reference Library](imgs/rag-reference-library.png)
+![Reference Library](imgs/nlp-reference-library.png)
 
 And lastly, let's look at the Ollama RAG use.
 
-![Ollama RAG Widget: Using the phi Ollama model, and a prompt of "Who were the Munchins and what are they good at?"](imgs/rag-ollama.png)
+![Ollama RAG Widget: Using the phi Ollama model, and a prompt of "Who were the Munchins and what are they good at?"](imgs/nlp-ollama-rag.png)
 
+### Polish Sentiment Analysis
+
+Since Polish sentiment analysis support in Orange was limited, Analiza Sentymentu provides a tuned model.
+
+![Polish sentiment analysis workflow](imgs/nlp-analiza-sentymenty-workflow.png)
