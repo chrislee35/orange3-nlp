@@ -20,13 +20,14 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only"
 ]
 dependencies = [
-    "Orange3 >=3.34.0",
-    "orange-canvas-core >=0.1.28",
-    "orange-widget-base >=4.20.0",
+    "Orange3 >= 3.39.0",
+    "orange-canvas-core >= 0.1.28",
+    "orange-widget-base >= 4.20.0",
+    "Orange3-Text >= 1.16.3
     "spacy >= 3.8.5",
     "flair >= 0.15.1",
     "nltk >= 3.9.1",
-    "numpy == 1.26.4",
+    "numpy >= 1.26.4",
     "sumy >= 0.11.0",
     "summa >= 1.2.0",
     "stanza >= 1.10.1",

@@ -4,7 +4,7 @@ from Orange.widgets import widget, settings
 from Orange.widgets.widget import Input, Output
 from Orange.data import Domain, StringVariable, Table
 from orangecontrib.text.corpus import Corpus
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from semantic_text_splitter import TextSplitter
 import numpy as np
 
