@@ -1,3 +1,7 @@
+from orangecanvas.localization import Translator  # pylint: disable=wrong-import-order
+_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
+del Translator
+
 from AnyQt.QtWidgets import QPushButton, QLineEdit, QCheckBox, QTextEdit, QTableWidget, QHeaderView, QTableWidgetItem
 from AnyQt.QtCore import QThread, pyqtSignal
 from Orange.widgets import widget, settings
@@ -10,7 +14,7 @@ class QuestionAnswerWorker(QThread):
     progress = pyqtSignal(int)
     results = pyqtSignal(list)
 
-    def __init__(self, texts, question, language="en"):
+    def __init__(self, texts, question, language='en'):
         super().__init__()
         self.texts = texts
         self.question = question
@@ -22,11 +26,10 @@ class QuestionAnswerWorker(QThread):
 
     def run(self):
         from transformers import pipeline
-
         try:
-            qa_pipeline = pipeline("question-answering")
+            qa_pipeline = pipeline('question-answering')
         except Exception as e:
-            self.results.emit([json.dumps({"error": f"Error loading QA pipeline: {e}"}) for _ in self.texts])
+            self.results.emit([json.dumps({'error': f'Error loading QA pipeline: {e}'}) for _ in self.texts])
             return
         answers = []
         for text in self.texts:
@@ -34,23 +37,22 @@ class QuestionAnswerWorker(QThread):
                 answer = qa_pipeline(question=self.question, context=text)
                 answers.append(answer['answer'])
             except Exception as e:
-                answers.append(f"Error during QA: {e}")
+                answers.append(f'Error during QA: {e}')
         self.results.emit(answers)
 
 class OWQuestionAnswer(widget.OWWidget):
-    name = "Question Answering"
-    description = "Answer a question using a text corpus."
-    icon = "icons/nlp-question-answer.svg"
+    name = _tr.m[62, 'Question Answering']
+    description = _tr.m[7, 'Answer a question using a text corpus.']
+    icon = 'icons/nlp-question-answer.svg'
     priority = 140
 
     class Inputs:
-        data = Input("Corpus", Corpus)
+        data = Input('Corpus', Corpus)
 
     class Outputs:
-        data = Output("Corpus", Corpus)
-
+        data = Output('Corpus', Corpus)
     want_main_area = True
-    question = settings.Setting("")
+    question = settings.Setting('')
     all_documents = settings.Setting(False)
     current_row = settings.Setting(0)
 
@@ -62,14 +64,13 @@ class OWQuestionAnswer(widget.OWWidget):
         self.layout_main_area()
 
     def layout_control_area(self):
-        self.all_docs_checkbox = QCheckBox("All documents")
+        self.all_docs_checkbox = QCheckBox(_tr.m[4, 'All documents'])
         self.all_docs_checkbox.setChecked(self.all_documents)
         self.all_docs_checkbox.stateChanged.connect(self.on_checkbox_change)
         self.controlArea.layout().addWidget(self.all_docs_checkbox)
-        
         self.table = QTableWidget(self)
         self.table.setColumnCount(1)
-        self.table.setHorizontalHeaderLabels(["Text"])
+        self.table.setHorizontalHeaderLabels(['Text'])
         self.table.verticalHeader().setVisible(False)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
@@ -81,15 +82,13 @@ class OWQuestionAnswer(widget.OWWidget):
 
     def layout_main_area(self):
         self.textbox = QLineEdit()
-        self.textbox.setPlaceholderText("Enter your question here")
+        self.textbox.setPlaceholderText(_tr.m[17, 'Enter your question here'])
         self.textbox.setText(self.question)
         self.textbox.returnPressed.connect(self.set_question)
         self.mainArea.layout().addWidget(self.textbox)
-
-        self.ask_button = QPushButton("Ask")
+        self.ask_button = QPushButton(_tr.m[8, 'Ask'])
         self.ask_button.clicked.connect(self.set_question)
         self.mainArea.layout().addWidget(self.ask_button)
-
         self.answer_box = QTextEdit()
         self.answer_box.setReadOnly(True)
         self.mainArea.layout().addWidget(self.answer_box)
@@ -104,7 +103,6 @@ class OWQuestionAnswer(widget.OWWidget):
         if not self.corpus or not len(self.corpus):
             self.table.setRowCount(0)
             return
-
         text_var = self.corpus.text_features[0]
         num_rows = min(30, len(self.corpus))
         self.table.setRowCount(num_rows)
@@ -118,7 +116,7 @@ class OWQuestionAnswer(widget.OWWidget):
         selected = self.table.selectedItems()
         if selected:
             self.current_row = self.table.currentRow()
-            self.ask_question()    
+            self.ask_question()
 
     @Inputs.data
     def set_data(self, data):
@@ -134,14 +132,11 @@ class OWQuestionAnswer(widget.OWWidget):
     def ask_question(self):
         if not self.question or not self.corpus:
             return
-
         if self.worker and self.worker.isRunning():
             self.worker.cancel()
             self.worker.wait()
-
-        language = getattr(self.corpus, "language", "en") or "en"
+        language = getattr(self.corpus, 'language', 'en') or 'en'
         texts = self.corpus.documents if self.all_documents else [self.corpus.documents[self.current_row]]
-
         self.progressBarInit()
         self.worker = QuestionAnswerWorker(texts, self.question, language)
         self.worker.progress.connect(self.progressBarSet)
@@ -149,22 +144,17 @@ class OWQuestionAnswer(widget.OWWidget):
         self.worker.start()
 
     def show_answer(self, answers):
-        self.answer_box.setPlainText("\n".join(answers[0:20]))
+        self.answer_box.setPlainText('\n'.join(answers[0:20]))
         self.progressBarFinished()
-
-        # Add answer to corpus as a new column
-        answer_var = StringVariable("Answer")
+        answer_var = StringVariable('Answer')
         if self.all_documents:
             new_data = self.corpus.add_column(answer_var, answers, to_metas=True)
         else:
             new_data = Corpus.from_table_rows(self.corpus, [self.current_row]).add_column(answer_var, answers, to_metas=True)
         self.Outputs.data.send(new_data)
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     from Orange.widgets.utils.widgetpreview import WidgetPreview
     import random
-
-    full_corpus = Corpus("book-excerpts")
+    full_corpus = Corpus('book-excerpts')
     sample_corpus = full_corpus[random.sample(range(len(full_corpus)), 10)]
-
     WidgetPreview(OWQuestionAnswer).run(sample_corpus)
