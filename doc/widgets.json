@@ -1,0 +1,296 @@
+[
+ [
+  "Summarization",
+  [
+   {
+    "text": "Abstractive Summary",
+    "doc": "widgets/abstractive-summary.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-abstract.svg",
+    "background": "light-green",
+    "keywords": [
+     "summary",
+     "summarize",
+     "bart",
+     "t5",
+     "pegasus"
+    ]
+   },
+   {
+    "text": "Extractive Summary",
+    "doc": "widgets/extractive-summary.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-extract.svg",
+    "background": "light-green",
+    "keywords": [
+     "summary",
+     "summarize",
+     "sumy",
+     "summa"
+    ]
+   }
+  ]
+ ],
+ [
+  "Analysis",
+  [
+   {
+    "text": "Named Entity Recognition",
+    "doc": "widgets/named-entity-recognition.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-ner.svg",
+    "background": "light-green",
+    "keywords": [
+     "ner",
+     "entities",
+     "named entity"
+    ]
+   },
+   {
+    "text": "Rule-based Entity-Relationship Extraction",
+    "doc": "widgets/rule-based-entity-relationship-extraction.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-relations.svg",
+    "background": "light-green",
+    "keywords": [
+     "relation",
+     "svo",
+     "triples",
+     "knowledge graph"
+    ]
+   },
+   {
+    "text": "Ollama-based Entity-Relationship Extraction",
+    "doc": "widgets/ollama-entity-relationship-extraction.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-relations.svg",
+    "background": "light-green",
+    "keywords": [
+     "relation",
+     "svo",
+     "triples",
+     "llm",
+     "ollama"
+    ]
+   },
+   {
+    "text": "POS Tagger",
+    "doc": "widgets/pos-tagger.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-pos-tagger.svg",
+    "background": "light-green",
+    "keywords": [
+     "pos",
+     "part of speech",
+     "tagging",
+     "dependency"
+    ]
+   },
+   {
+    "text": "POS Viewer",
+    "doc": "widgets/pos-viewer.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-pos-viewer.svg",
+    "background": "light-green",
+    "keywords": [
+     "pos",
+     "dependency",
+     "displacy"
+    ]
+   },
+   {
+    "text": "Analiza Sentymentu",
+    "doc": "widgets/analiza-sentymentu.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-analiza-sentymentu.svg",
+    "background": "light-green",
+    "keywords": [
+     "polish",
+     "sentiment",
+     "sentyment"
+    ]
+   },
+   {
+    "text": "Question Answering",
+    "doc": "widgets/question-answering.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-question-answer.svg",
+    "background": "light-green",
+    "keywords": [
+     "question",
+     "answer",
+     "qa"
+    ]
+   }
+  ]
+ ],
+ [
+  "Text Splitting",
+  [
+   {
+    "text": "Text Chunker",
+    "doc": "widgets/text-chunker.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-chunk.svg",
+    "background": "light-green",
+    "keywords": [
+     "split",
+     "chunk",
+     "rag"
+    ]
+   },
+   {
+    "text": "Tokens to Corpus",
+    "doc": "widgets/tokens-to-corpus.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-token2corpus.svg",
+    "background": "light-green",
+    "keywords": [
+     "tokens",
+     "sentences",
+     "split"
+    ]
+   }
+  ]
+ ],
+ [
+  "Embeddings",
+  [
+   {
+    "text": "Text Embedder",
+    "doc": "widgets/text-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-embed.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "vectors"
+    ]
+   },
+   {
+    "text": "Doc2Vec Embedder",
+    "doc": "widgets/doc2vec-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-doc2vec.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "gensim",
+     "doc2vec"
+    ]
+   },
+   {
+    "text": "E5 Embedder",
+    "doc": "widgets/e5-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-e5.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "e5"
+    ]
+   },
+   {
+    "text": "FastText Embedder",
+    "doc": "widgets/fasttext-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-fasttext.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "fasttext"
+    ]
+   },
+   {
+    "text": "Gemini Embedder",
+    "doc": "widgets/gemini-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-gemini.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "gemini",
+     "google"
+    ]
+   },
+   {
+    "text": "Nomic Embedder",
+    "doc": "widgets/nomic-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-nomic.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "nomic",
+     "ollama"
+    ]
+   },
+   {
+    "text": "OpenAI Embedder",
+    "doc": "widgets/openai-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-openai.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "openai"
+    ]
+   },
+   {
+    "text": "SBERT Embedder",
+    "doc": "widgets/sbert-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-sbert.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "sbert",
+     "sentence transformers"
+    ]
+   },
+   {
+    "text": "spaCy Embedder",
+    "doc": "widgets/spacy-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-spacy.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "spacy"
+    ]
+   },
+   {
+    "text": "USE Embedder",
+    "doc": "widgets/use-embedder.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-USE.svg",
+    "background": "light-green",
+    "keywords": [
+     "embedding",
+     "use",
+     "universal sentence encoder"
+    ]
+   },
+   {
+    "text": "Train Doc2Vec",
+    "doc": "widgets/train-doc2vec.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-doc2vec-train.svg",
+    "background": "light-green",
+    "keywords": [
+     "doc2vec",
+     "train",
+     "gensim"
+    ]
+   }
+  ]
+ ],
+ [
+  "Retrieval-Augmented Generation",
+  [
+   {
+    "text": "Reference Library",
+    "doc": "widgets/reference-library.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-reference.svg",
+    "background": "light-green",
+    "keywords": [
+     "rag",
+     "retrieval",
+     "vector",
+     "faiss",
+     "search"
+    ]
+   },
+   {
+    "text": "Ollama RAG",
+    "doc": "widgets/ollama-rag.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-rag.svg",
+    "background": "light-green",
+    "keywords": [
+     "rag",
+     "llm",
+     "ollama",
+     "generate"
+    ]
+   }
+  ]
+ ]
+]

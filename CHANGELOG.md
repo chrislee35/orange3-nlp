@@ -1,12 +1,13 @@
 # Changelog
 
-## 0.0.9 (unreleased)
+## 0.0.10 (unreleased)
 
 ### Dependencies
 - Require Orange3 >= 3.41.0 (was >= 3.39.0).
 - Require numpy >= 2.0 (was >= 1.26.4) so the project installs cleanly alongside Orange3 3.41.0 on Windows and Linux.
 - Require gensim >= 4.4.0 (was >= 4.3.3); 4.3.x caps numpy below 2.0.
 - Replace `fasttext` with `fasttext-predict >= 0.9.2.4`. `fasttext` 0.9.3 has no wheels (it must be compiled on Windows) and is not numpy 2 compatible. `fasttext-predict` ships Windows and Linux wheels and imports as `fasttext`. It supports inference only, which is all the FastText Embedder widget uses (`load_model`, `get_word_vector`, `get_dimension`).
+- Restrict `requires-python` to `>=3.11,<3.14`: TensorFlow publishes no Python 3.14 wheels, so installing on 3.14 failed with an unresolvable dependency error. Dependencies resolve on Linux and Windows for Python 3.11, 3.12 and 3.13, and every compiled dependency has a Windows wheel (the only source-only packages, such as `summa`, `baycomp` and `python-louvain`, are pure Python).
 - Fix a missing closing quote and comma on the `Orange3-Text >= 1.16.3` dependency line in `pyproject.toml`.
 
 ### Added
@@ -27,7 +28,10 @@
 - New helpers: `util/qt_helpers.py` (`layout_of`, `box_layout_of`), `util/typed_settings.py` (`setting`, a typed wrapper for Orange `Setting`), and `util/paths.py` (`orange_data_dir`).
 - Removed `orangecontrib/__init__.py` (a deprecated `pkg_resources` namespace declaration); `orangecontrib` is now a PEP 420 namespace package.
 - The gemini and OpenAI embedder widgets' `update()` method (which overrode `QWidget.update`) is renamed `update_embedder()`.
-- Version bumped from 0.0.8 to 0.0.9.
+- README rewritten: installation (pip, requirements, models and services, API keys), all widgets including the entity-relationship and Text Embedder widgets, localization, and a development section; fixed typos and a broken LangChain link, and "Reference Augmented Generation" is now "Retrieval-Augmented Generation".
+- Added a Sphinx documentation site in `doc/` (one help page per widget, `widgets.json`, Makefile and `make.bat`), written in Markdown with MyST. The `doc` extra now installs `myst-parser` instead of `recommonmark`. Build with `cd doc && make html`; the built HTML is bundled into the wheel and used by the widgets' Help button.
+- Packaging: the built Sphinx HTML is now bundled via `setup.py` (the previous `data-files` glob in `pyproject.toml` could not match directories), and `doc`, `build`, `dist` and `typings` are excluded from package discovery.
+- Version bumped from 0.0.8 to 0.0.10 (0.0.9 was never released).
 
 ### Fixed
 - The Ollama option in the Named Entity Recognition widget ignored the configured host, port and model (it always used `localhost:11434` and `phi`); it now uses the widget settings and has a request timeout.

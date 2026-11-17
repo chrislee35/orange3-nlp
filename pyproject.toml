@@ -4,10 +4,10 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "orange3-nlp"
-version = "0.0.9"
+version = "0.0.10"
 description = "A collection of Orange3 widgets to perform natural language processing"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 license = { text = "CC-BY-NC-SA-4.0" }
 authors = [
     { name = "Chris Lee", email = "github@chrislee.dhs.org" },
@@ -53,7 +53,7 @@ license-files = ["LICENSE"]
 
 [project.optional-dependencies]
 test = ["coverage"]
-doc = ["sphinx", "recommonmark", "sphinx_rtd_theme"]
+doc = ["sphinx", "myst-parser", "sphinx_rtd_theme"]
 
 [project.urls]
 Homepage = "https://github.com/chrislee35/orange3-nlp"
@@ -61,14 +61,11 @@ Homepage = "https://github.com/chrislee35/orange3-nlp"
 [tool.setuptools.packages.find]
 where = ["."]
 namespaces = true
-exclude = ["typings*"]
+exclude = ["typings*", "doc*", "build*", "dist*"]
 
 [tool.setuptools.package-data]
 "orangecontrib.nlp.widgets" = ["icons/*.svg"]
 "orangecontrib.nlp" = ["i18n/English.json", "i18n/Japanese.json"]
-
-[tool.setuptools.data-files]
-"help/orange3-nlp" = ["doc/_build/html/**/*"]
 
 [project.entry-points."orange.widgets"]
 nlp = "orangecontrib.nlp.widgets"
