@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "orange3-nlp"
-version = "0.0.8"
+version = "0.0.9"
 description = "A collection of Orange3 widgets to perform natural language processing"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -20,14 +20,14 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only"
 ]
 dependencies = [
-    "Orange3 >= 3.39.0",
+    "Orange3 >= 3.41.0",
     "orange-canvas-core >= 0.1.28",
     "orange-widget-base >= 4.20.0",
-    "Orange3-Text >= 1.16.3
+    "Orange3-Text >= 1.16.3",
     "spacy >= 3.8.5",
     "flair >= 0.15.1",
     "nltk >= 3.9.1",
-    "numpy >= 1.26.4",
+    "numpy >= 2.0",
     "sumy >= 0.11.0",
     "summa >= 1.2.0",
     "stanza >= 1.10.1",
@@ -36,10 +36,10 @@ dependencies = [
     "sentence_transformers >= 4.1.0",
     "openai >= 1.78.1",
     "langchain-text-splitters >= 0.3.8",
-    "gensim >= 4.3.3",
+    "gensim >= 4.4.0",
     "tensorflow >= 2.19.0",
     "tensorflow-hub >= 0.16.1",
-    "fasttext >= 0.9.3",
+    "fasttext-predict >= 0.9.2.4",
     "google-generativeai >= 0.8.5",
     "PyQtWebEngine >= 5.15.7",
     "sacremoses >= 0.1.1",
@@ -64,6 +64,7 @@ namespaces = true
 
 [tool.setuptools.package-data]
 "orangecontrib.nlp.widgets" = ["icons/*.svg"]
+"orangecontrib.nlp" = ["i18n/English.json", "i18n/Japanese.json"]
 
 [tool.setuptools.data-files]
 "help/orange3-nlp" = ["doc/_build/html/**/*"]
