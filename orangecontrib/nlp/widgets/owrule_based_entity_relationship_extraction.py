@@ -1,3 +1,7 @@
+from orangecanvas.localization import Translator  # pylint: disable=wrong-import-order
+_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
+del Translator
+
 import threading
 import spacy
 from PyQt5.QtCore import QThread, pyqtSignal
@@ -155,9 +159,9 @@ class RuleBasedEntityRelationshipExtractionWorker(QThread):
         self.result_ready.emit(results)
 
 class OWRuleBasedEntityRelationshipExtraction(OWWidget):
-    name = "Rule-based Entity-Relationship Extraction"
-    description = "Extract subject–verb–object relations using spaCy"
-    icon = "icons/RelationExtraction.svg"
+    name = _tr.m[96, "Rule-based Entity-Relationship Extraction"]
+    description = _tr.m[97, "Extract subject–verb–object relations using spaCy"]
+    icon = "icons/nlp-relations.svg"
     priority = 50
 
     class Inputs:

@@ -85,5 +85,16 @@
   "f\"<h3>Invalid POS JSON format:<br>{e}</h3>\"",
   "f\"<h3>spaCy {self.corpus.language} model not found.</h3>\"",
   "f\"Received {len(self.corpus)} documents.\"",
-  "spaCy Embedder"
+  "spaCy Embedder",
+  "Ollama-based Entity-Relationship Extraction",
+  "Extract subject–verb–object relations using an Ollama model",
+  "Extract",
+  "Errors:",
+  "Extracting relations…",
+  "Received {n} documents. Press Extract to run.",
+  "Extracted {n} relations.",
+  "No Ollama model selected.",
+  "Failed to fetch models from Ollama server: {error}",
+  "Rule-based Entity-Relationship Extraction",
+  "Extract subject–verb–object relations using spaCy"
 ]

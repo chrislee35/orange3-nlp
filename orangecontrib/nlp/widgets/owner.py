@@ -88,8 +88,10 @@ class FlairWorker(NERWorker):
 
 class OllamaWorker(NERWorker):
 
-    def __init__(self, texts, model_name='phi'):
+    def __init__(self, texts, host='localhost', port='11434', model_name='phi'):
         super().__init__(texts)
+        self.host = host
+        self.port = port
         self.model_name = model_name
 
     def run(self):
@@ -102,7 +104,7 @@ class OllamaWorker(NERWorker):
             else:
                 prompt = f"Extract named entities from the following text. Return a JSON array of objects with 'text' and 'label' keys.\n\nText: {text}\n"
                 try:
-                    response = requests.post('http://localhost:11434/api/generate', json={'model': self.model_name, 'prompt': prompt, 'stream': False}, headers={'Content-Type': 'application/json'})
+                    response = requests.post(f'http://{self.host}:{self.port}/api/generate', json={'model': self.model_name, 'prompt': prompt, 'stream': False}, headers={'Content-Type': 'application/json'}, timeout=300)
                     content = response.json().get('response', '')
                     entities = json.loads(content)
                     formatted = ', '.join((f"{e['text']} ({e['label']})" for e in entities))
@@ -233,7 +235,10 @@ class OWNERWidget(widget.OWWidget):
         elif framework == 'Flair':
             self.worker = FlairWorker(texts)
         elif framework == 'Ollama':
-            self.worker = OllamaWorker(texts)
+            self.ollama_host = self.host_input.text()
+            self.ollama_port = self.port_input.text()
+            self.selected_model = self.model_selector.currentText() or self.selected_model
+            self.worker = OllamaWorker(texts, self.ollama_host, self.ollama_port, self.selected_model)
         else:
             self.infoLabel.setText(_tr.m[80, 'Unknown framework selected.'])
             return

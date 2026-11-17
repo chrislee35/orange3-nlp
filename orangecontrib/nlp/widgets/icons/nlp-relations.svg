@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 200 200">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#444"/>
+    </marker>
+  </defs>
+  <line x1="55" y1="100" x2="140" y2="100" stroke="#444" stroke-width="8" marker-end="url(#a)"/>
+  <circle cx="40" cy="100" r="28" fill="#99ff99" stroke="#444" stroke-width="6"/>
+  <circle cx="160" cy="100" r="28" fill="#99ff99" stroke="#444" stroke-width="6"/>
+  <rect x="75" y="70" width="50" height="22" rx="6" fill="#fff" stroke="#444" stroke-width="5"/>
+</svg>
