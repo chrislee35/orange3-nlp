@@ -19,6 +19,7 @@
 - Packaging: the built Sphinx HTML is now bundled via `setup.py` (the previous `data-files` glob in `pyproject.toml` could not match directories), and `doc`, `build`, `dist` and `typings` are excluded from package discovery.
 
 ### Fixed
+- FastText Embedder failed with `'_FastText' object has no attribute 'get_word_vector'` (`fasttext-predict` is prediction-only). The widget now loads the Facebook `.bin` models with gensim (`load_facebook_vectors`), which is already a dependency, supports out-of-vocabulary words, and needs no separate fasttext package.
 - The Ollama option in the Named Entity Recognition widget ignored the configured host, port and model (it always used `localhost:11434` and `phi`); it now uses the widget settings and has a request timeout.
 - The Rule-based Entity-Relationship Extraction widget referenced a nonexistent icon (`RelationExtraction.svg`).
 - `os.path.makedirs` (nonexistent) in the UDPipe downloader; now `os.makedirs`.
@@ -32,7 +33,7 @@
 - Require Orange3 >= 3.41.0 (was >= 3.39.0).
 - Require numpy >= 2.0 (was >= 1.26.4) so the project installs cleanly alongside Orange3 3.41.0 on Windows and Linux.
 - Require gensim >= 4.4.0 (was >= 4.3.3); 4.3.x caps numpy below 2.0.
-- Replace `fasttext` with `fasttext-predict >= 0.9.2.4`. `fasttext` 0.9.3 has no wheels (it must be compiled on Windows) and is not numpy 2 compatible. `fasttext-predict` ships Windows and Linux wheels and imports as `fasttext`. It supports inference only, which is all the FastText Embedder widget uses (`load_model`, `get_word_vector`, `get_dimension`).
+- Remove the `fasttext` dependency (0.9.3 has no wheels and is not numpy 2 compatible). 0.0.9 briefly used `fasttext-predict`, which turned out to lack word vectors; see 0.0.10.
 - Fix a missing closing quote and comma on the `Orange3-Text >= 1.16.3` dependency line in `pyproject.toml`.
 
 ### Added

@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import urllib.request
-import fasttext
+from gensim.models.fasttext import load_facebook_vectors
 import gzip
 import shutil
 from orangecontrib.nlp.util.embedder_models import EmbedderModel
@@ -189,15 +189,15 @@ class FastTextEmbedder(EmbedderModel):
         if not os.path.exists(model_path):
             self._download_model(language, model_path)
         if FastTextEmbedder._model is None:
-            FastTextEmbedder._model = fasttext.load_model(model_path)
+            FastTextEmbedder._model = load_facebook_vectors(model_path)
         embeddings = []
         for text in texts:
             words = text.strip().split()
-            vectors = [FastTextEmbedder._model.get_word_vector(word) for word in words]
+            vectors = [FastTextEmbedder._model[word] for word in words]
             if vectors:
                 doc_vector = np.mean(vectors, axis=0)
             else:
-                doc_vector = np.zeros(FastTextEmbedder._model.get_dimension(), dtype="float32")
+                doc_vector = np.zeros(FastTextEmbedder._model.vector_size, dtype="float32")
             embeddings.append(doc_vector)
         return np.array(embeddings, dtype="float32")
 
