@@ -50,3 +50,6 @@ coverage.xml
 
 # Sphinx documentation
 .spyproject/
+
+# Translation tool scratch files
+orangecontrib/nlp/i18n/*.progress.json
