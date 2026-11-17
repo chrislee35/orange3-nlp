@@ -134,7 +134,12 @@ class OWPOSViewer(widget.OWWidget):
             "font": "Source Sans Pro",
         }
         html = displacy.render(doc, style="dep", page=False, options=options)
-        styled_html = f"\n<html>\n<head>\n  <style>\n    body {{\n      background-color: {bg_color};\n      color: {fg_color};\n      margin: 0;\n      padding: 10px;\n      font: Source Sans Pro;\n    }}\n    .displacy-word, .displacy-arrow {{\n      color: {fg_color};\n    }}\n  </style>\n</head>\n<body>\n  {html}\n</body>\n</html>\n"
+        styled_html = (
+            f"\n<html>\n<head>\n  <style>\n    body {{\n      background-color: {bg_color};\n"
+            f"      color: {fg_color};\n      margin: 0;\n      padding: 10px;\n      font: Source Sans Pro;\n"
+            f"    }}\n    .displacy-word, .displacy-arrow {{\n      color: {fg_color};\n    }}\n  </style>\n"
+            f"</head>\n<body>\n  {html}\n</body>\n</html>\n"
+        )
         self.webview.setHtml(styled_html)
 
 

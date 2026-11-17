@@ -123,7 +123,10 @@ class OllamaWorker(NERWorker):
             if not text:
                 results.append("")
             else:
-                prompt = f"Extract named entities from the following text. Return a JSON array of objects with 'text' and 'label' keys.\n\nText: {text}\n"
+                prompt = (
+                    f"Extract named entities from the following text. Return a JSON array of objects with 'text' and 'label' keys.\n"
+                    f"\nText: {text}\n"
+                )
                 try:
                     response = requests.post(
                         f"http://{self.host}:{self.port}/api/generate",
