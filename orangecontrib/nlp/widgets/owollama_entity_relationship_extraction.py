@@ -1,18 +1,29 @@
-from orangecanvas.localization import Translator  # pylint: disable=wrong-import-order
-_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
-del Translator
-
 import json
 
 import requests
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
 from AnyQt.QtWidgets import (
-    QComboBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QSpinBox, QTextEdit, QWidget
+    QComboBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QSpinBox,
+    QTextEdit,
+    QWidget,
 )
 from Orange.data import Domain, StringVariable, Table
-from Orange.widgets import settings, widget
+from Orange.widgets import widget
 from Orange.widgets.widget import Input, Output
 from orangecontrib.text.corpus import Corpus
+
+from orangecanvas.localization import Translator
+from orangecontrib.nlp.util.qt_helpers import layout_of
+from orangecontrib.nlp.util.typed_settings import setting
+
+_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
+del Translator
+
 
 DEFAULT_PROMPT = (
     "Extract entity relationships from the text below as subject-verb-object triples.\n"
@@ -72,7 +83,7 @@ class OllamaEntityRelationshipWorker(QThread):
     progress = pyqtSignal(int)
     error = pyqtSignal(str)
 
-    def __init__(self, texts, host, port, model, prompt):
+    def __init__(self, texts: list[str], host: str, port: str | int, model: str, prompt: str) -> None:
         super().__init__()
         self.texts = texts
         self.host = host
@@ -81,7 +92,7 @@ class OllamaEntityRelationshipWorker(QThread):
         self.prompt = prompt
         self._cancel = False
 
-    def cancel(self):
+    def cancel(self) -> None:
         self._cancel = True
 
     def extract(self, text: str) -> list[tuple[str, str, str, str]]:
@@ -99,7 +110,7 @@ class OllamaEntityRelationshipWorker(QThread):
         response.raise_for_status()
         return parse_relations(response.json().get("response", ""))
 
-    def run(self):
+    def run(self) -> None:
         results = []
         errors = []
         total = len(self.texts)
@@ -125,10 +136,10 @@ class OWOllamaEntityRelationshipExtraction(widget.OWWidget):
     icon = "icons/nlp-relations.svg"
     priority = 51
 
-    host = settings.Setting("localhost")
-    port = settings.Setting(11434)
-    model = settings.Setting("")
-    prompt = settings.Setting(DEFAULT_PROMPT)
+    host = setting("localhost")
+    port = setting(11434)
+    model = setting("")
+    prompt = setting(DEFAULT_PROMPT)
 
     class Inputs:
         corpus = Input("Corpus", Corpus)
@@ -138,15 +149,15 @@ class OWOllamaEntityRelationshipExtraction(widget.OWWidget):
 
     want_main_area = False
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.corpus = None
         self.worker = None
         self.layout_control_area()
         self.update_model_list()
 
-    def layout_control_area(self):
-        a = self.controlArea.layout().addWidget
+    def layout_control_area(self) -> None:
+        a = layout_of(self.controlArea).addWidget
         a(QLabel(_tr.m[26, "Host:"]))
         self.host_input = QLineEdit(self.host)
         self.host_input.editingFinished.connect(self.on_host_port_changed)
@@ -186,14 +197,14 @@ class OWOllamaEntityRelationshipExtraction(widget.OWWidget):
         self.error_box.setStyleSheet("color: red;")
         self.error_box.setMaximumHeight(100)
         a(self.error_box)
-        self.controlArea.layout().setAlignment(Qt.AlignTop)
+        layout_of(self.controlArea).setAlignment(Qt.AlignmentFlag.AlignTop)
 
-    def on_host_port_changed(self):
+    def on_host_port_changed(self) -> None:
         self.host = self.host_input.text()
         self.port = self.port_input.value()
         self.update_model_list()
 
-    def update_model_list(self):
+    def update_model_list(self) -> None:
         try:
             response = requests.get(f"http://{self.host}:{self.port}/api/tags", timeout=10)
             response.raise_for_status()
@@ -210,7 +221,7 @@ class OWOllamaEntityRelationshipExtraction(widget.OWWidget):
             self.model = models[0]
 
     @Inputs.corpus
-    def set_corpus(self, corpus):
+    def set_corpus(self, corpus: Corpus | None) -> None:
         self.cancel_worker()
         self.corpus = corpus
         self.error_box.clear()
@@ -220,7 +231,7 @@ class OWOllamaEntityRelationshipExtraction(widget.OWWidget):
         else:
             self.info_label.setText(_tr.m[92, "Received {n} documents. Press Extract to run."].format(n=len(corpus)))
 
-    def cancel_worker(self):
+    def cancel_worker(self) -> None:
         if self.worker is not None and self.worker.isRunning():
             self.worker.cancel()
             self.worker.wait()
@@ -229,7 +240,7 @@ class OWOllamaEntityRelationshipExtraction(widget.OWWidget):
             self.cancel_button.setEnabled(False)
             self.info_label.setText(_tr.m[51, "Processing cancelled."])
 
-    def start_worker(self):
+    def start_worker(self) -> None:
         if self.corpus is None:
             return
         self.cancel_worker()
@@ -242,9 +253,7 @@ class OWOllamaEntityRelationshipExtraction(widget.OWWidget):
             return
 
         self.error_box.clear()
-        self.worker = OllamaEntityRelationshipWorker(
-            list(self.corpus.documents), self.host, self.port, self.model, self.prompt
-        )
+        self.worker = OllamaEntityRelationshipWorker(list(self.corpus.documents), self.host, self.port, self.model, self.prompt)
         self.worker.progress.connect(self.progressBarSet)
         self.worker.error.connect(self.error_box.setPlainText)
         self.worker.result_ready.connect(self.on_result_ready)
@@ -254,7 +263,7 @@ class OWOllamaEntityRelationshipExtraction(widget.OWWidget):
         self.info_label.setText(_tr.m[91, "Extracting relations…"])
         self.worker.start()
 
-    def on_result_ready(self, relations):
+    def on_result_ready(self, relations: list[tuple[int, str, str, str, str]]) -> None:
         self.progressBarFinished()
         self.run_button.setEnabled(True)
         self.cancel_button.setEnabled(False)
@@ -271,17 +280,18 @@ class OWOllamaEntityRelationshipExtraction(widget.OWWidget):
                 StringVariable("sentence"),
             ],
         )
-        table = Table.from_list(domain, [
-            [str(chunk_id), subj, verb, obj, sent]
-            for chunk_id, subj, verb, obj, sent in relations
-        ])
+        table = Table.from_list(
+            domain,
+            [[str(chunk_id), subj, verb, obj, sent] for chunk_id, subj, verb, obj, sent in relations],
+        )
         self.Outputs.relations.send(table)
 
-    def onDeleteWidget(self):
+    def onDeleteWidget(self) -> None:
         self.cancel_worker()
         super().onDeleteWidget()
 
 
 if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
+
     WidgetPreview(OWOllamaEntityRelationshipExtraction).run(Corpus("book-excerpts"))

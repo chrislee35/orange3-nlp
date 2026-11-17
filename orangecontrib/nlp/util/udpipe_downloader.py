@@ -1,69 +1,72 @@
-import requests
-from Orange.misc.environ import data_dir_base
 import os
+
+import requests
+
+from orangecontrib.nlp.util.paths import orange_data_dir
+
 
 class UDPipeDownloader:
     @staticmethod
     def model_path(language_code: str) -> str:
-        model_dir = os.path.join(data_dir_base(), 'Orange', 'udpipe')
+        model_dir = orange_data_dir("udpipe")
         model_path = f"{model_dir}/{language_code}.udpipe"
         return model_path
 
     @staticmethod
     def download(language_code: str) -> bool:
-        UDPIPE_LANGUAGE_MODELS = {
-            'af': 'afrikaans-afribooms',
-            'ar': 'arabic-padt',
-            'bg': 'bulgarian-btb',
-            'bn': 'bengali-brc',
-            'ca': 'catalan-ancora',
-            'cs': 'czech-pdt',
-            'cu': 'old-church-slavonic',
-            'da': 'danish-ddt',
-            'de': 'german-hdt',
-            'el': 'greek-gdt',
-            'en': 'english-ewt',
-            'es': 'spanish-ancora',
-            'et': 'estonian-edt',
-            'eu': 'basque-bdt',
-            'fa': 'persian-seraji',
-            'fi': 'finnish-tdt',
-            'fr': 'french-gsd',
-            'ga': 'irish-idt',
-            'gl': 'galician-ctg',
-            'he': 'hebrew-htb',
-            'hi': 'hindi-hdtb',
-            'hr': 'croatian-set',
-            'hu': 'hungarian-szeged',
-            'id': 'indonesian-gsd',
-            'is': 'icelandic-icepahc',
-            'it': 'italian-isdt',
-            'ja': 'japanese-gsd',
-            'kk': 'kazakh-kkk',
-            'ko': 'korean-kaist',
-            'la': 'latin-ittb',
-            'lv': 'latvian-lvtb',
-            'lt': 'lithuanian-alksnis',
-            'mr': 'marathi-ufal',
-            'mt': 'maltese-mudt',
-            'nl': 'dutch-alpino',
-            'no': 'norwegian-bokmaal',
-            'pl': 'polish-lfg',
-            'pt': 'portuguese-bosque',
-            'ro': 'romanian-rrt',
-            'ru': 'russian-syntagrus',
-            'sk': 'slovak-snk',
-            'sl': 'slovenian-ssj',
-            'sr': 'serbian-set',
-            'sv': 'swedish-talbanken',
-            'ta': 'tamil-ttb',
-            'te': 'telugu-mtg',
-            'th': 'thai-pudt',
-            'tr': 'turkish-ttb',
-            'uk': 'ukrainian-iu',
-            'ur': 'urdu-udtb',
-            'vi': 'vietnamese-vtb',
-            'zh': 'chinese-gsd'
+        UDPIPE_LANGUAGE_MODELS: dict[str, str] = {
+            "af": "afrikaans-afribooms",
+            "ar": "arabic-padt",
+            "bg": "bulgarian-btb",
+            "bn": "bengali-brc",
+            "ca": "catalan-ancora",
+            "cs": "czech-pdt",
+            "cu": "old-church-slavonic",
+            "da": "danish-ddt",
+            "de": "german-hdt",
+            "el": "greek-gdt",
+            "en": "english-ewt",
+            "es": "spanish-ancora",
+            "et": "estonian-edt",
+            "eu": "basque-bdt",
+            "fa": "persian-seraji",
+            "fi": "finnish-tdt",
+            "fr": "french-gsd",
+            "ga": "irish-idt",
+            "gl": "galician-ctg",
+            "he": "hebrew-htb",
+            "hi": "hindi-hdtb",
+            "hr": "croatian-set",
+            "hu": "hungarian-szeged",
+            "id": "indonesian-gsd",
+            "is": "icelandic-icepahc",
+            "it": "italian-isdt",
+            "ja": "japanese-gsd",
+            "kk": "kazakh-kkk",
+            "ko": "korean-kaist",
+            "la": "latin-ittb",
+            "lv": "latvian-lvtb",
+            "lt": "lithuanian-alksnis",
+            "mr": "marathi-ufal",
+            "mt": "maltese-mudt",
+            "nl": "dutch-alpino",
+            "no": "norwegian-bokmaal",
+            "pl": "polish-lfg",
+            "pt": "portuguese-bosque",
+            "ro": "romanian-rrt",
+            "ru": "russian-syntagrus",
+            "sk": "slovak-snk",
+            "sl": "slovenian-ssj",
+            "sr": "serbian-set",
+            "sv": "swedish-talbanken",
+            "ta": "tamil-ttb",
+            "te": "telugu-mtg",
+            "th": "thai-pudt",
+            "tr": "turkish-ttb",
+            "uk": "ukrainian-iu",
+            "ur": "urdu-udtb",
+            "vi": "vietnamese-vtb",
+            "zh": "chinese-gsd",
         }
         model_name = UDPIPE_LANGUAGE_MODELS.get(language_code, None)
         if not model_name:
@@ -78,8 +81,7 @@ class UDPipeDownloader:
 
         model_path = UDPipeDownloader.model_path(language_code)
         if not os.path.exists(os.path.dirname(model_path)):
-            os.path.makedirs(os.path.dirname(model_path))
-        with open(model_path, 'wb') as f:
+            os.makedirs(os.path.dirname(model_path))
+        with open(model_path, "wb") as f:
             f.write(response.content)
         return True
-

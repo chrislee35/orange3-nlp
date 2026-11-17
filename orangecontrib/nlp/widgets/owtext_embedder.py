@@ -1,7 +1,3 @@
-from orangecanvas.localization import Translator  # pylint: disable=wrong-import-order
-_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
-del Translator
-
 import numpy as np
 from AnyQt.QtCore import QThread, pyqtSignal
 from Orange.widgets import widget
@@ -10,16 +6,26 @@ from Orange.data import Domain, Table, ContinuousVariable
 from orangecontrib.text.corpus import Corpus
 from orangecontrib.nlp.util.embedder_models import EmbedderModel
 
+from orangecanvas.localization import Translator
+
+_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
+del Translator
+
+
 class EmbedderWorker(QThread):
     result = pyqtSignal(Corpus)
     progress = pyqtSignal(int)
 
-    def __init__(self, corpus: Corpus, embedder: EmbedderModel):
+    def __init__(self, corpus: Corpus, embedder: EmbedderModel) -> None:
         super().__init__()
         self.corpus = corpus
         self.embedder = embedder
+        self._cancelled = False
 
-    def run(self):
+    def cancel(self) -> None:
+        self._cancelled = True
+
+    def run(self) -> None:
         last_progress = 0
         batch_size = 32
         total_documents = len(self.corpus.documents)
@@ -27,7 +33,9 @@ class EmbedderWorker(QThread):
         vectors = []
         idx = 0
         for i in range(0, total_documents, batch_size):
-            batch = self.corpus.documents[i:i + batch_size]
+            if self._cancelled:
+                return
+            batch = self.corpus.documents[i : i + batch_size]
             vecs = self.embedder.embed(self.corpus.language, batch)
             vectors.extend(vecs)
             idx += 1
@@ -37,69 +45,78 @@ class EmbedderWorker(QThread):
                 last_progress = progress
         embeddings = np.array(vectors)
         dim = embeddings.shape[1]
-        embedding_attrs = [ContinuousVariable(f'emb_{i}') for i in range(dim)]
+        embedding_attrs = [ContinuousVariable(f"emb_{i}") for i in range(dim)]
         new_X = np.hstack((self.corpus.X, embeddings))
         original_attrs = self.corpus.domain.attributes
         combined_attrs = list(original_attrs) + embedding_attrs
-        domain = Domain(attributes=combined_attrs, class_vars=self.corpus.domain.class_vars, metas=self.corpus.domain.metas)
+        domain = Domain(
+            attributes=combined_attrs,
+            class_vars=self.corpus.domain.class_vars,
+            metas=self.corpus.domain.metas,
+        )
         new_table = Table(domain, new_X, self.corpus.Y, self.corpus.metas)
         new_corpus = Corpus.from_table(domain, new_table)
         self.result.emit(new_corpus)
 
+
 class OWTextEmbedder(widget.OWWidget):
-    name = _tr.m[74, 'Text Embedder']
-    description = _tr.m[49, 'Performs embedding on text.']
-    icon = 'icons/nlp-embed.svg'
+    name = _tr.m[74, "Text Embedder"]
+    description = _tr.m[49, "Performs embedding on text."]
+    icon = "icons/nlp-embed.svg"
     priority = 150
 
     class Inputs:
-        data = Input('Corpus', Corpus)
-        embedder = Input('Embedder', EmbedderModel, auto_summary=False)
+        data = Input("Corpus", Corpus)
+        embedder = Input("Embedder", EmbedderModel, auto_summary=False)
 
     class Outputs:
-        data = Output('Embedded Corpus', Corpus)
+        data = Output("Embedded Corpus", Corpus)
+
     want_main_area = False
     want_control_area = False
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.corpus = None
         self.worker = None
         self.embedder = None
 
     @Inputs.data
-    def set_data(self, data):
+    def set_data(self, data: Corpus | None) -> None:
         self.corpus = data
         self.run_embedder()
 
     @Inputs.embedder
-    def set_embedder(self, embedder):
+    def set_embedder(self, embedder: EmbedderModel | None) -> None:
         self.embedder = embedder
         self.run_embedder()
 
-    def run_embedder(self):
+    def run_embedder(self) -> None:
         if self.corpus and (not self.embedder):
-            self.error('You must connect an embedder')
+            self.error("You must connect an embedder")
             return
         if not (self.corpus and self.embedder):
             return
-        self.error('')
+        self.error("")
         self.worker = EmbedderWorker(self.corpus, self.embedder)
         self.progressBarInit()
         self.worker.progress.connect(self.progressBarSet)
         self.worker.result.connect(self.finish_embedding)
         self.worker.start()
 
-    def finish_embedding(self, results: Corpus):
+    def finish_embedding(self, results: Corpus) -> None:
         self.progressBarFinished()
         self.Outputs.data.send(results)
 
-    def stop_worker(self):
+    def stop_worker(self) -> None:
         if self.worker and self.worker.isRunning():
             self.worker.cancel()
             self.worker.wait()
             self.progressBarInit()
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
-    corpus = Corpus('book-excerpts')
+
+    corpus = Corpus("book-excerpts")
     WidgetPreview(OWTextEmbedder).run(corpus)

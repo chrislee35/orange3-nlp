@@ -1,5 +1,6 @@
 import re
 
+
 def truncate_at_sentence(text: str, max_chars: int = 3700) -> str:
     """
     Truncate `text` at the last complete sentence before `max_chars`.
@@ -18,9 +19,9 @@ def truncate_at_sentence(text: str, max_chars: int = 3700) -> str:
     snippet = text[:max_chars]
 
     # Find the last sentence-ending punctuation before the cut
-    match = re.search(r'(?s)(.*?[\.\!\?])[^\.!?]*$', snippet)
+    match = re.search(r"(?s)(.*?[\.\!\?])[^\.!?]*$", snippet)
     if match:
         return match.group(1).strip()
     else:
         # If no sentence boundary found, fall back to word boundary
-        return snippet.rsplit(' ', 1)[0].strip()
+        return snippet.rsplit(" ", 1)[0].strip()

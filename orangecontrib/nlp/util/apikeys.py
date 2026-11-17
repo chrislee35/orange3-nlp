@@ -4,14 +4,17 @@ from AnyQt.QtCore import QSettings
 
 _ORANGE_SETTINGS_GROUP = "nlp/api_keys"
 
-def _settings():
+
+def _settings() -> QSettings:
     return QSettings()
 
-def set_api_key(service_name: str, api_key: str):
+
+def set_api_key(service_name: str, api_key: str) -> None:
     s = _settings()
     s.beginGroup(_ORANGE_SETTINGS_GROUP)
     s.setValue(service_name, api_key)
     s.endGroup()
+
 
 def get_api_key(service_name: str) -> str:
     s = _settings()
@@ -19,6 +22,7 @@ def get_api_key(service_name: str) -> str:
     key = s.value(service_name, "", type=str)
     s.endGroup()
     return key or ""
+
 
 def available_services() -> list[str]:
     s = _settings()

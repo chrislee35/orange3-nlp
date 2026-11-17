@@ -3,22 +3,21 @@ from Orange.widgets.tests.base import WidgetTest
 from orangecontrib.text import Corpus
 from orangecontrib.text.widgets.owpreprocess import OWPreprocess, TokenizerModule
 from orangecontrib.nlp.widgets.owtoken_corpus import OWTokenCorpus
-from unittest.mock import patch, PropertyMock, MagicMock, Mock
+from unittest.mock import patch, PropertyMock
+
 
 class TestOWTokenCorpusWidget(WidgetTest):
-    @patch("orangecontrib.text.widgets.owpreprocess.OWPreprocess."
-           "storedsettings",
-           PropertyMock(return_value={
-               "preprocessors": [("preprocess.tokenize",
-                                  {"method": TokenizerModule.Sentence})]
-           }))
-    def setUp(self):
+    @patch(
+        "orangecontrib.text.widgets.owpreprocess.OWPreprocess." "storedsettings",
+        PropertyMock(return_value={"preprocessors": [("preprocess.tokenize", {"method": TokenizerModule.Sentence})]}),
+    )
+    def setUp(self) -> None:
         super().setUp()
         self.corpus = Corpus("andersen")
         self.preprocess_widget = self.create_widget(OWPreprocess)
         self.token_corpus_widget = self.create_widget(OWTokenCorpus)
 
-    def test_sentence_tokenization_flow(self):
+    def test_sentence_tokenization_flow(self) -> None:
         # Simulate a tiny corpus
         corpus = self.corpus
         # Send corpus to OWPreprocess and enable sentence tokenization
@@ -41,6 +40,7 @@ class TestOWTokenCorpusWidget(WidgetTest):
         # Optional: Check that tokens are sentence-level
         for doc in token_output.documents:
             print(doc)
+
 
 if __name__ == "__main__":
     unittest.main()

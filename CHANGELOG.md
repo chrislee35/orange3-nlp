@@ -23,8 +23,16 @@
   - Summarization and Q&A: Abstractive Summary, Extractive Summary, Question Answer, Ollama RAG.
   - Text processing and analysis: Analiza Sentymentu, NER, POS Tagger, POS Viewer, Reference Library, Text Chunker, Token Corpus.
 - Both entity-relationship extraction widgets are translated (new entries 87-97 appended to the i18n files, with Japanese translations).
+- Code quality: all ruff errors fixed (including the Translator preamble moved below the imports), type hints added throughout (ruff `ANN` rules now enforced), Pylance/pyright clean, and the code formatted with black (line length 140). Added `[tool.black]`, `[tool.ruff]` and `[tool.pyright]` configuration and a `typings/` stub package that points `AnyQt` at PyQt5 for type checkers (excluded from the wheel).
+- New helpers: `util/qt_helpers.py` (`layout_of`, `box_layout_of`), `util/typed_settings.py` (`setting`, a typed wrapper for Orange `Setting`), and `util/paths.py` (`orange_data_dir`).
+- Removed `orangecontrib/__init__.py` (a deprecated `pkg_resources` namespace declaration); `orangecontrib` is now a PEP 420 namespace package.
+- The gemini and OpenAI embedder widgets' `update()` method (which overrode `QWidget.update`) is renamed `update_embedder()`.
 - Version bumped from 0.0.8 to 0.0.9.
 
 ### Fixed
 - The Ollama option in the Named Entity Recognition widget ignored the configured host, port and model (it always used `localhost:11434` and `phi`); it now uses the widget settings and has a request timeout.
 - The Rule-based Entity-Relationship Extraction widget referenced a nonexistent icon (`RelationExtraction.svg`).
+- `os.path.makedirs` (nonexistent) in the UDPipe downloader; now `os.makedirs`.
+- The OpenAI Embedder widget constructed `OpenAIEmbedder(api_key, model)`, which raised a `TypeError`; the embedder reads its own API key.
+- Text Embedder: Cancel/stop raised `AttributeError` because the worker had no `cancel()`.
+- Text Chunker: an unknown chunking strategy raised an unbound-variable error; it now raises a clear `ValueError`.

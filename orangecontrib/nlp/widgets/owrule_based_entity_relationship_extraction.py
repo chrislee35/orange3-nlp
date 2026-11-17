@@ -1,6 +1,4 @@
-from orangecanvas.localization import Translator  # pylint: disable=wrong-import-order
-_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
-del Translator
+from typing import Any
 
 import threading
 import spacy
@@ -10,6 +8,11 @@ from Orange.widgets.widget import OWWidget, Input, Output
 from Orange.data import Table, Domain, StringVariable
 from orangecontrib.text.corpus import Corpus
 
+from orangecanvas.localization import Translator
+
+_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
+del Translator
+
 
 class RuleBasedEntityRelationshipExtractionWorker(QThread):
     result_ready = pyqtSignal(list)
@@ -17,19 +20,19 @@ class RuleBasedEntityRelationshipExtractionWorker(QThread):
 
     _thread_local = threading.local()
 
-    def __init__(self, corpus: Corpus):
+    def __init__(self, corpus: Corpus) -> None:
         super().__init__()
         self.corpus = corpus
         self._abort = False
 
-    def abort(self):
+    def abort(self) -> None:
         self._abort = True
 
-    def _get_model(self, language):
-        if not hasattr(self._thread_local, 'model'):
+    def _get_model(self, language: str) -> Any:
+        if not hasattr(self._thread_local, "model"):
             self._thread_local.model = {}
         if language not in self._thread_local.model:
-            model_name = SpaCyDownloader.model_name(language)
+            model_name = SpaCyDownloader.require_model_name(language)
             try:
                 self._thread_local.model[language] = spacy.load(model_name)
             except Exception:
@@ -37,18 +40,25 @@ class RuleBasedEntityRelationshipExtractionWorker(QThread):
                 self._thread_local.model[language] = spacy.load(model_name)
         return self._thread_local.model[language]
 
-    def extract_svo(self, nlp, chunk_id: int, text: str) -> list[tuple[int, str, str, str, str]]:
-    
+    def extract_svo(self, nlp: Any, chunk_id: int, text: str) -> list[tuple[int, str, str, str, str]]:
+
         # Verbs that are usually discourse-level, not semantic relations
         VERB_BLACKLIST = {
-            "show", "suggest", "indicate", "find", "report", "observe",
-            "demonstrate", "describe", "note"
+            "show",
+            "suggest",
+            "indicate",
+            "find",
+            "report",
+            "observe",
+            "demonstrate",
+            "describe",
+            "note",
         }
 
-        def normalize(text):
+        def normalize(text: str) -> str:
             return " ".join(text.lower().split())
 
-        def expand_span(token):
+        def expand_span(token: Any) -> str:
             return normalize(" ".join(t.text for t in token.subtree))
 
         doc = nlp(text)
@@ -85,13 +95,15 @@ class RuleBasedEntityRelationshipExtractionWorker(QThread):
                                 verb_lemma = token.lemma_.lower()
                                 if objects:
                                     for obj in objects:
-                                        results.append((
-                                            chunk_id,
-                                            subjects[-1],
-                                            verb_lemma,
-                                            obj,
-                                            sent.text
-                                        ))
+                                        results.append(
+                                            (
+                                                chunk_id,
+                                                subjects[-1],
+                                                verb_lemma,
+                                                obj,
+                                                sent.text,
+                                            )
+                                        )
 
                 # Prepositional verb relations (migrate_to, linked_to)
                 for prep in token.children:
@@ -102,51 +114,29 @@ class RuleBasedEntityRelationshipExtractionWorker(QThread):
                             rel = f"{verb_lemma}_{prep.text.lower()}"
                             obj = expand_span(pobj)
                             for subj in subjects:
-                                results.append((
-                                    chunk_id,
-                                    subj,
-                                    rel,
-                                    obj,
-                                    sent.text
-                                ))
+                                results.append((chunk_id, subj, rel, obj, sent.text))
 
                 # Direct SVO relations
                 for subj in subjects:
                     for obj in objects:
-                        results.append((
-                            chunk_id,
-                            subj,
-                            verb_lemma,
-                            obj,
-                            sent.text
-                        ))
+                        results.append((chunk_id, subj, verb_lemma, obj, sent.text))
 
             # --- Handle copular / attribution relations ---
             for token in sent:
                 if token.dep_ == "cop" and token.head.pos_ in ("NOUN", "ADJ"):
                     head = token.head
-                    subjects = [
-                        expand_span(child)
-                        for child in head.children
-                        if child.dep_ == "nsubj"
-                    ]
+                    subjects = [expand_span(child) for child in head.children if child.dep_ == "nsubj"]
                     attributes = [expand_span(head)]
 
                     for subj in subjects:
                         for attr in attributes:
-                            results.append((
-                                chunk_id,
-                                subj,
-                                "is",
-                                attr,
-                                sent.text
-                            ))
+                            results.append((chunk_id, subj, "is", attr, sent.text))
         return results
 
-    def run(self):
-        nlp = self._get_model(language='en')
+    def run(self) -> None:
+        nlp = self._get_model(language="en")
         results = []
-        
+
         total = len(self.corpus)
         for chunk_id, text in enumerate(self.corpus.documents):
             if self._abort:
@@ -157,6 +147,7 @@ class RuleBasedEntityRelationshipExtractionWorker(QThread):
             self.progress.emit(int((chunk_id + 1) / total * 100))
 
         self.result_ready.emit(results)
+
 
 class OWRuleBasedEntityRelationshipExtraction(OWWidget):
     name = _tr.m[96, "Rule-based Entity-Relationship Extraction"]
@@ -170,13 +161,13 @@ class OWRuleBasedEntityRelationshipExtraction(OWWidget):
     class Outputs:
         relations = Output("Relations", Table)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.worker = None
         self.corpus = None
 
     @Inputs.corpus
-    def set_corpus(self, corpus):
+    def set_corpus(self, corpus: Corpus | None) -> None:
         self.corpus = corpus
         if corpus is None:
             self.Outputs.relations.send(None)
@@ -184,7 +175,9 @@ class OWRuleBasedEntityRelationshipExtraction(OWWidget):
 
         self.start_worker()
 
-    def start_worker(self):
+    def start_worker(self) -> None:
+        if self.corpus is None:
+            return
         if self.worker:
             self.worker.abort()
             self.worker.wait()
@@ -194,10 +187,10 @@ class OWRuleBasedEntityRelationshipExtraction(OWWidget):
         self.worker.progress.connect(self.on_progress)
         self.worker.start()
 
-    def on_progress(self, value):
+    def on_progress(self, value: int) -> None:
         self.progressBarSet(value)
 
-    def on_result_ready(self, relations):
+    def on_result_ready(self, relations: list[tuple[int, str, str, str, str]]) -> None:
         self.progressBarFinished()
 
         domain = Domain(
@@ -207,18 +200,20 @@ class OWRuleBasedEntityRelationshipExtraction(OWWidget):
                 StringVariable("subject"),
                 StringVariable("verb"),
                 StringVariable("object"),
-                StringVariable("sentence")
+                StringVariable("sentence"),
             ],
         )
 
-        table = Table.from_list(domain, [
-            [str(chunk_id), subj, verb, obj, sent]
-            for chunk_id, subj, verb, obj, sent in relations
-        ])
+        table = Table.from_list(
+            domain,
+            [[str(chunk_id), subj, verb, obj, sent] for chunk_id, subj, verb, obj, sent in relations],
+        )
 
         self.Outputs.relations.send(table)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
-    corpus = Corpus('andersen')
+
+    corpus = Corpus("andersen")
     WidgetPreview(OWRuleBasedEntityRelationshipExtraction).run(corpus)

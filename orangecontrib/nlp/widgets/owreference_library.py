@@ -1,10 +1,16 @@
-from orangecanvas.localization import Translator  # pylint: disable=wrong-import-order
-_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
-del Translator
+from typing import Any
 
-from AnyQt.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QLabel, QTextEdit, QSpinBox, QDoubleSpinBox
+from AnyQt.QtWidgets import (
+    QHBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QLabel,
+    QTextEdit,
+    QSpinBox,
+    QDoubleSpinBox,
+)
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
-from Orange.widgets import widget, settings
+from Orange.widgets import widget
 from Orange.widgets.widget import Input, Output
 from Orange.data import Domain, StringVariable, Table
 from orangecontrib.text.corpus import Corpus
@@ -12,22 +18,30 @@ from orangecontrib.nlp.util.embedder_models import EmbedderModel
 import numpy as np
 import faiss
 
+from orangecanvas.localization import Translator
+from orangecontrib.nlp.util.qt_helpers import box_layout_of, layout_of
+from orangecontrib.nlp.util.typed_settings import setting
+
+_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
+del Translator
+
+
 class VectorDB(QThread):
     result = pyqtSignal(object)
     progress = pyqtSignal(int)
 
-    def __init__(self, corpus: Corpus):
+    def __init__(self, corpus: Corpus) -> None:
         super().__init__()
         self.corpus = corpus
-        self.index = None
+        self.index: Any = None
         self._cancelled = False
 
-    def run(self):
-        embedding_attrs = [attr for attr in self.corpus.domain.attributes if attr.name.startswith('emb_')]
-        embedding_attrs.sort(key=lambda a: int(a.name.split('_')[1]))
+    def run(self) -> None:
+        embedding_attrs = [attr for attr in self.corpus.domain.attributes if attr.name.startswith("emb_")]
+        embedding_attrs.sort(key=lambda a: int(a.name.split("_")[1]))
         embedding_indices = [self.corpus.domain.index(attr) for attr in embedding_attrs]
         embeddings = self.corpus.X[:, embedding_indices]
-        vectors = np.vstack(embeddings)
+        vectors = np.vstack(list(embeddings))
         dim = vectors.shape[1]
         self.index = faiss.IndexFlatIP(dim)
         self._cancelled = False
@@ -37,7 +51,7 @@ class VectorDB(QThread):
         idx = 0
         last_progress = 0
         for i in range(0, num_vectors, batch_size):
-            self.index.add(vectors[i:i + batch_size])
+            self.index.add(vectors[i : i + batch_size])
             idx += 1
             progress = int(100 * (idx / total_batches))
             if progress > last_progress:
@@ -48,53 +62,56 @@ class VectorDB(QThread):
                 return
         self.result.emit(self.index)
 
-    def search(self, query_vec, top_k=5):
+    def search(self, query_vec: np.ndarray, top_k: int = 5) -> list[tuple[str, float]]:
         if self.index is None:
             return []
         distances, indices = self.index.search(query_vec, top_k)
         return [(self.corpus.documents[i], float(distances[0][j])) for j, i in enumerate(indices[0]) if i < len(self.corpus.documents)]
 
-    def cancel(self):
+    def cancel(self) -> None:
         self._cancelled = True
+
 
 class SearchWorker(QThread):
     result = pyqtSignal(list)
     progress = pyqtSignal(int)
 
-    def __init__(self, query_vec, vector_db, top_k):
+    def __init__(self, query_vec: np.ndarray, vector_db: Any, top_k: int) -> None:
         super().__init__()
         self.query_vec = query_vec
         self.vector_db = vector_db
         self.top_k = top_k
         self._cancelled = False
 
-    def cancel(self):
+    def cancel(self) -> None:
         self._cancelled = True
 
-    def run(self):
+    def run(self) -> None:
         self.progress.emit(10)
         results = self.vector_db.search(self.query_vec, top_k=self.top_k)
         self.progress.emit(100)
         if not self._cancelled:
             self.result.emit(results)
 
+
 class OWReferenceLibrary(widget.OWWidget):
-    name = _tr.m[63, 'Reference Library']
-    description = _tr.m[69, 'Stores documents in a vector database and retrieves references.']
-    icon = 'icons/nlp-reference.svg'
+    name = _tr.m[63, "Reference Library"]
+    description = _tr.m[69, "Stores documents in a vector database and retrieves references."]
+    icon = "icons/nlp-reference.svg"
     priority = 150
 
     class Inputs:
-        data = Input('Corpus', Corpus)
-        embedder = Input('Embedder', EmbedderModel, auto_summary=False)
+        data = Input("Corpus", Corpus)
+        embedder = Input("Embedder", EmbedderModel, auto_summary=False)
 
     class Outputs:
-        data = Output('Excerpts', Corpus)
-    max_excerpts = settings.Setting(5)
-    threshold = settings.Setting(0.0)
-    query = settings.Setting('')
+        data = Output("Excerpts", Corpus)
 
-    def __init__(self):
+    max_excerpts = setting(5)
+    threshold = setting(0.0)
+    query = setting("")
+
+    def __init__(self) -> None:
         super().__init__()
         self.corpus = None
         self.vector_db = None
@@ -103,64 +120,64 @@ class OWReferenceLibrary(widget.OWWidget):
         self.layout_control_area()
         self.layout_main_area()
 
-    def layout_control_area(self):
-        max_excerpts_label = QLabel(_tr.m[28, 'Max excerpts:'])
-        self.controlArea.layout().addWidget(max_excerpts_label)
+    def layout_control_area(self) -> None:
+        max_excerpts_label = QLabel(_tr.m[28, "Max excerpts:"])
+        layout_of(self.controlArea).addWidget(max_excerpts_label)
         self.max_excerpts_spin = QSpinBox()
         self.max_excerpts_spin.setRange(1, 100)
         self.max_excerpts_spin.setValue(self.max_excerpts)
         self.max_excerpts_spin.valueChanged.connect(self.on_max_excerpts_change)
-        self.controlArea.layout().addWidget(self.max_excerpts_spin)
-        threshold_label = QLabel(_tr.m[27, 'Matching threshold:'])
-        self.controlArea.layout().addWidget(threshold_label)
+        layout_of(self.controlArea).addWidget(self.max_excerpts_spin)
+        threshold_label = QLabel(_tr.m[27, "Matching threshold:"])
+        layout_of(self.controlArea).addWidget(threshold_label)
         self.threshold_spin = QDoubleSpinBox()
         self.threshold_spin.setDecimals(2)
         self.threshold_spin.setRange(0.0, 1.0)
         self.threshold_spin.setSingleStep(0.01)
         self.threshold_spin.setValue(self.threshold)
         self.threshold_spin.valueChanged.connect(self.on_threshold_change)
-        self.controlArea.layout().addWidget(self.threshold_spin)
-        self.controlArea.layout().setAlignment(Qt.AlignTop)
+        layout_of(self.controlArea).addWidget(self.threshold_spin)
+        layout_of(self.controlArea).setAlignment(Qt.AlignmentFlag.AlignTop)
 
-    def layout_main_area(self):
+    def layout_main_area(self) -> None:
         self.query_input = QLineEdit()
-        self.query_input.setPlaceholderText(_tr.m[16, 'Enter query here'])
+        self.query_input.setPlaceholderText(_tr.m[16, "Enter query here"])
         self.query_input.setText(self.query)
         self.query_input.returnPressed.connect(self.on_query_change)
-        self.mainArea.layout().addWidget(self.query_input)
+        layout_of(self.mainArea).addWidget(self.query_input)
         buttons_layout = QHBoxLayout()
-        self.search_button = QPushButton(_tr.m[21, 'Find References'])
+        self.search_button = QPushButton(_tr.m[21, "Find References"])
         self.search_button.clicked.connect(self.on_query_change)
         buttons_layout.addWidget(self.search_button)
-        self.stop_button = QPushButton(_tr.m[68, 'Stop'])
+        self.stop_button = QPushButton(_tr.m[68, "Stop"])
         self.stop_button.clicked.connect(self.stop_worker)
         buttons_layout.addWidget(self.stop_button)
-        self.mainArea.layout().addLayout(buttons_layout)
+        box_layout_of(self.mainArea).addLayout(buttons_layout)
         self.results_display = QTextEdit()
         self.results_display.setReadOnly(True)
-        self.mainArea.layout().addWidget(self.results_display)
+        layout_of(self.mainArea).addWidget(self.results_display)
 
-    def on_max_excerpts_change(self, val):
+    def on_max_excerpts_change(self, val: int) -> None:
         self.max_excerpts = val
 
-    def on_threshold_change(self, val):
+    def on_threshold_change(self, val: float) -> None:
         self.threshold = val
 
-    def on_query_change(self):
+    def on_query_change(self) -> None:
         self.query = self.query_input.text()
         self.find_references()
 
     @Inputs.data
-    def set_data(self, data):
+    def set_data(self, data: Corpus | None) -> None:
         self.corpus = data
         self.build_vector_db()
 
     @Inputs.embedder
-    def set_embedder(self, embedder):
+    def set_embedder(self, embedder: EmbedderModel | None) -> None:
         self.embedder = embedder
         self.find_references()
 
-    def build_vector_db(self):
+    def build_vector_db(self) -> None:
         if not self.corpus:
             return
         self.vector_db = VectorDB(self.corpus)
@@ -170,17 +187,17 @@ class OWReferenceLibrary(widget.OWWidget):
         self.worker.result.connect(self.finish_vector_db_indexing)
         self.worker.start()
 
-    def finish_vector_db_indexing(self, index: object):
+    def finish_vector_db_indexing(self, index: object) -> None:
         self.progressBarFinished()
         self.find_references()
 
-    def stop_worker(self):
+    def stop_worker(self) -> None:
         if self.worker and self.worker.isRunning():
             self.worker.cancel()
             self.worker.wait()
             self.progressBarInit()
 
-    def find_references(self):
+    def find_references(self) -> None:
         if not self.corpus or not self.query or (not self.embedder):
             return
         self.stop_worker()
@@ -191,32 +208,37 @@ class OWReferenceLibrary(widget.OWWidget):
         self.worker.result.connect(self.display_results)
         self.worker.start()
 
-    def display_results(self, results):
-        excerpt_var = StringVariable('excerpt')
-        score_var = StringVariable('score')
+    def display_results(self, results: Any) -> None:
+        if self.corpus is None:
+            return
+        excerpt_var = StringVariable("excerpt")
+        score_var = StringVariable("score")
         metas = [excerpt_var, score_var]
         new_rows = []
         for text, score in results:
             if score < self.threshold:
                 continue
-            new_metas = [text, f'{score:.4f}']
+            new_metas = [text, f"{score:.4f}"]
             new_rows.append(new_metas)
         if not new_rows:
-            self.results_display.setPlainText(_tr.m[35, 'No results above the threshold.'])
+            self.results_display.setPlainText(_tr.m[35, "No results above the threshold."])
             return
         domain = Domain([], metas=metas)
         metas_array = np.array(new_rows, dtype=object)
         table = Table.from_numpy(domain, X=np.empty((len(new_rows), 0)), metas=metas_array)
         new_corpus: Corpus = Corpus.from_table(domain, table)
-        new_corpus.attributes['language'] = self.corpus.attributes['language']
-        new_corpus.set_text_features([new_corpus.columns.excerpt])
-        self.results_display.setPlainText('\n---\n'.join([f'{r[0]}\n(Similarity: {r[1]:.4f})' for r in results if r[1] >= self.threshold]))
+        new_corpus.attributes["language"] = self.corpus.attributes["language"]
+        new_corpus.set_text_features([new_corpus.domain.metas[0]])
+        self.results_display.setPlainText("\n---\n".join([f"{r[0]}\n(Similarity: {r[1]:.4f})" for r in results if r[1] >= self.threshold]))
         self.Outputs.data.send(new_corpus)
         self.progressBarFinished()
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
     from orangecontrib.nlp.widgets.owmodel_sbert import SBERTEmbedder
-    corpus = Corpus('datasets/book-excerpts-embedded.tab')
+
+    corpus = Corpus("datasets/book-excerpts-embedded.tab")
     embed_func = SBERTEmbedder()
     w = WidgetPreview(OWReferenceLibrary)
     w.create_widget()

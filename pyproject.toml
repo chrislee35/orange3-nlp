@@ -61,6 +61,7 @@ Homepage = "https://github.com/chrislee35/orange3-nlp"
 [tool.setuptools.packages.find]
 where = ["."]
 namespaces = true
+exclude = ["typings*"]
 
 [tool.setuptools.package-data]
 "orangecontrib.nlp.widgets" = ["icons/*.svg"]
@@ -77,3 +78,23 @@ orange3-nlp = "orangecontrib.nlp"
 
 [project.entry-points."orange.canvas.help"]
 html-index = "orangecontrib.nlp.widgets:WIDGET_HELP_PATH"
+
+[tool.black]
+line-length = 140
+target-version = ["py311"]
+
+[tool.pyright]
+include = ["orangecontrib", "tests"]
+pythonVersion = "3.11"
+# Orange's widget framework declares Inputs/Outputs/Setting as class attributes
+# that intentionally override its base-class annotations.
+reportIncompatibleVariableOverride = false
+
+[tool.ruff]
+line-length = 140
+extend-exclude = ["typings"]
+
+[tool.ruff.lint]
+extend-select = ["ANN"]
+# Any is used deliberately for untyped third-party objects.
+ignore = ["ANN401"]

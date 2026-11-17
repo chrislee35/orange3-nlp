@@ -1,7 +1,3 @@
-from orangecanvas.localization import Translator  # pylint: disable=wrong-import-order
-_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
-del Translator
-
 import Orange.data
 from Orange.widgets import widget
 from Orange.widgets.widget import Input, Output
@@ -10,16 +6,22 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from sentimentpl.models import SentimentPLModel
 import numpy as np
 
+from orangecanvas.localization import Translator
+
+_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
+del Translator
+
+
 class SentimentWorker(QThread):
     progress = pyqtSignal(int)
     result = pyqtSignal(list)
 
-    def __init__(self, texts):
+    def __init__(self, texts: list[str]) -> None:
         super().__init__()
         self.texts = texts
-        self.model = SentimentPLModel(from_pretrained='latest')
+        self.model = SentimentPLModel(from_pretrained="latest")
 
-    def run(self):
+    def run(self) -> None:
         results = []
         total = len(self.texts)
         for i, text in enumerate(self.texts):
@@ -28,52 +30,60 @@ class SentimentWorker(QThread):
             self.progress.emit(int((i + 1) / total * 100))
         self.result.emit(results)
 
+
 class OWAnalizaSentymentu(widget.OWWidget):
-    name = _tr.m[5, 'Analiza Sentymentu']
-    description = _tr.m[6, 'Analiza sentymentu tekstu w języku polskim.']
-    icon = 'icons/nlp-analiza-sentymentu.svg'
+    name = _tr.m[5, "Analiza Sentymentu"]
+    description = _tr.m[6, "Analiza sentymentu tekstu w języku polskim."]
+    icon = "icons/nlp-analiza-sentymentu.svg"
     priority = 10
     want_main_area = False
     want_control_area = False
 
     class Inputs:
-        data = Input('Korpus', Corpus)
+        data = Input("Korpus", Corpus)
 
     class Outputs:
-        data = Output('Korpus z sentymentem', Corpus)
+        data = Output("Korpus z sentymentem", Corpus)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.data = None
         self.worker = None
 
     @Inputs.data
-    def set_data(self, data):
+    def set_data(self, data: Corpus | None) -> None:
         self.data = data
         if data is not None:
             self.run_analysis()
 
-    def run_analysis(self):
+    def run_analysis(self) -> None:
+        if self.data is None:
+            return
         self.worker = SentimentWorker(self.data.documents)
         self.worker.progress.connect(self.report_progress)
         self.worker.result.connect(self.handle_result)
         self.progressBarInit()
         self.worker.start()
 
-    def report_progress(self, percent):
+    def report_progress(self, percent: float) -> None:
         self.progressBarSet(percent)
 
-    def handle_result(self, scores):
+    def handle_result(self, scores: list[float]) -> None:
+        if self.data is None:
+            return
         new_data = self.data.copy()
         values = np.array(scores)
-        new_column = Orange.data.ContinuousVariable('score')
+        new_column = Orange.data.ContinuousVariable("score")
         new_data = new_data.add_column(new_column, values)
         self.Outputs.data.send(new_data)
         self.progressBarFinished()
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
     import random
-    full_corpus = Corpus('datasets/recenzja_produktu.tab')
+
+    full_corpus = Corpus("datasets/recenzja_produktu.tab")
     indices = random.sample(range(len(full_corpus)), 10)
     sample_corpus = full_corpus[indices]
     WidgetPreview(OWAnalizaSentymentu).run(sample_corpus)

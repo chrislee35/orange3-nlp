@@ -1,10 +1,14 @@
-from orangecanvas.localization import Translator  # pylint: disable=wrong-import-order
-_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
-del Translator
-
-from AnyQt.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QComboBox, QLabel, QTextEdit, QSpinBox
+from AnyQt.QtWidgets import (
+    QHBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QComboBox,
+    QLabel,
+    QTextEdit,
+    QSpinBox,
+)
 from AnyQt.QtCore import Qt, QThread, pyqtSignal
-from Orange.widgets import widget, settings
+from Orange.widgets import widget
 from Orange.widgets.widget import Input, Output
 from Orange.data import Domain, StringVariable, Table
 from orangecontrib.text.corpus import Corpus
@@ -12,12 +16,20 @@ import requests
 import numpy as np
 import json
 
+from orangecanvas.localization import Translator
+from orangecontrib.nlp.util.qt_helpers import box_layout_of, layout_of
+from orangecontrib.nlp.util.typed_settings import setting
+
+_tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
+del Translator
+
+
 class OllamaWorker(QThread):
     result = pyqtSignal(str)
     finished = pyqtSignal(str)
     error = pyqtSignal(str)
 
-    def __init__(self, host, port, model, prompt, references):
+    def __init__(self, host: str, port: str | int, model: str, prompt: str, references: str) -> None:
         super().__init__()
         self.host = host
         self.port = port
@@ -26,52 +38,53 @@ class OllamaWorker(QThread):
         self.references = references
         self._cancel = False
 
-    def run(self):
+    def run(self) -> None:
         try:
-            headers = {'Content-Type': 'application/json'}
-            prompt = f'{self.prompt}\n\nReferences:\n{self.references}'
-            data = json.dumps({'model': self.model, 'prompt': prompt})
-            url = f'http://{self.host}:{self.port}/api/generate'
+            headers = {"Content-Type": "application/json"}
+            prompt = f"{self.prompt}\n\nReferences:\n{self.references}"
+            data = json.dumps({"model": self.model, "prompt": prompt})
+            url = f"http://{self.host}:{self.port}/api/generate"
             with requests.post(url, headers=headers, data=data, stream=True, timeout=60) as response:
                 if response.status_code == 200:
-                    output = ''
+                    output = ""
                     for line in response.iter_lines():
                         if self._cancel:
                             break
                         if line:
-                            msg = json.loads(line.decode('utf-8'))
-                            if 'response' in msg:
-                                text = msg['response']
+                            msg = json.loads(line.decode("utf-8"))
+                            if "response" in msg:
+                                text = msg["response"]
                                 self.result.emit(text)
                                 output += text
                     if not self._cancel:
                         self.finished.emit(output)
                 else:
-                    self.error.emit(f'Error {response.status_code}: {response.text}')
+                    self.error.emit(f"Error {response.status_code}: {response.text}")
         except Exception as e:
-            self.error.emit('Generation error: ' + str(e))
+            self.error.emit("Generation error: " + str(e))
 
-    def cancel(self):
+    def cancel(self) -> None:
         self._cancel = True
 
+
 class OWOllamaRAG(widget.OWWidget):
-    name = _tr.m[43, 'Ollama RAG']
-    description = _tr.m[66, 'Send RAG prompt to an Ollama model.']
-    icon = 'icons/nlp-rag.svg'
+    name = _tr.m[43, "Ollama RAG"]
+    description = _tr.m[66, "Send RAG prompt to an Ollama model."]
+    icon = "icons/nlp-rag.svg"
     priority = 160
 
-    host = settings.Setting('localhost')
-    port = settings.Setting(11434)
-    model = settings.Setting('')
-    prompt = settings.Setting('')
+    host = setting("localhost")
+    port = setting(11434)
+    model = setting("")
+    prompt = setting("")
 
     class Inputs:
-        data = Input('Corpus', Corpus)
+        data = Input("Corpus", Corpus)
 
     class Outputs:
-        data = Output('Corpus', Corpus)
+        data = Output("Corpus", Corpus)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.corpus = None
         self.worker = None
@@ -79,66 +92,66 @@ class OWOllamaRAG(widget.OWWidget):
         self.layout_main_area()
         self.update_model_list()
 
-    def layout_control_area(self):
-        self.controlArea.layout().addWidget(QLabel(_tr.m[26, 'Host:']))
+    def layout_control_area(self) -> None:
+        layout_of(self.controlArea).addWidget(QLabel(_tr.m[26, "Host:"]))
         self.host_input = QLineEdit(self.host)
         self.host_input.editingFinished.connect(self.on_host_port_changed)
-        self.controlArea.layout().addWidget(self.host_input)
-        self.controlArea.layout().addWidget(QLabel(_tr.m[50, 'Port:']))
+        layout_of(self.controlArea).addWidget(self.host_input)
+        layout_of(self.controlArea).addWidget(QLabel(_tr.m[50, "Port:"]))
         self.port_input = QSpinBox()
         self.port_input.setRange(1, 65535)
         self.port_input.setValue(self.port)
         self.port_input.editingFinished.connect(self.on_host_port_changed)
-        self.controlArea.layout().addWidget(self.port_input)
-        self.controlArea.layout().addWidget(QLabel(_tr.m[30, 'Model:']))
+        layout_of(self.controlArea).addWidget(self.port_input)
+        layout_of(self.controlArea).addWidget(QLabel(_tr.m[30, "Model:"]))
         self.model_combo = QComboBox()
         self.model_combo.currentTextChanged.connect(self.on_model_changed)
-        self.controlArea.layout().addWidget(self.model_combo)
+        layout_of(self.controlArea).addWidget(self.model_combo)
         self.error_box = QTextEdit()
         self.error_box.setReadOnly(True)
-        self.error_box.setStyleSheet('color: red;')
-        self.controlArea.layout().addWidget(QLabel(_tr.m[25, 'Generation Errors:']))
-        self.controlArea.layout().addWidget(self.error_box)
-        self.controlArea.layout().setAlignment(Qt.AlignTop)
+        self.error_box.setStyleSheet("color: red;")
+        layout_of(self.controlArea).addWidget(QLabel(_tr.m[25, "Generation Errors:"]))
+        layout_of(self.controlArea).addWidget(self.error_box)
+        layout_of(self.controlArea).setAlignment(Qt.AlignmentFlag.AlignTop)
 
-    def layout_main_area(self):
+    def layout_main_area(self) -> None:
         self.prompt_input = QTextEdit()
         self.prompt_input.setPlainText(self.prompt)
-        self.mainArea.layout().addWidget(QLabel(_tr.m[52, 'Prompt:']))
-        self.mainArea.layout().addWidget(self.prompt_input)
+        layout_of(self.mainArea).addWidget(QLabel(_tr.m[52, "Prompt:"]))
+        layout_of(self.mainArea).addWidget(self.prompt_input)
         buttons_layout = QHBoxLayout()
-        self.generate_button = QPushButton(_tr.m[23, 'Generate'])
+        self.generate_button = QPushButton(_tr.m[23, "Generate"])
         self.generate_button.clicked.connect(self.on_prompt_changed)
         buttons_layout.addWidget(self.generate_button)
-        self.stop_button = QPushButton(_tr.m[68, 'Stop'])
+        self.stop_button = QPushButton(_tr.m[68, "Stop"])
         self.stop_button.clicked.connect(self.stop_worker)
         self.stop_button.setEnabled(False)
         buttons_layout.addWidget(self.stop_button)
-        self.mainArea.layout().addLayout(buttons_layout)
+        box_layout_of(self.mainArea).addLayout(buttons_layout)
         self.output_display = QTextEdit()
         self.output_display.setReadOnly(True)
-        self.mainArea.layout().addWidget(QLabel(_tr.m[45, 'Output:']))
-        self.mainArea.layout().addWidget(self.output_display)
+        layout_of(self.mainArea).addWidget(QLabel(_tr.m[45, "Output:"]))
+        layout_of(self.mainArea).addWidget(self.output_display)
 
-    def on_host_port_changed(self):
+    def on_host_port_changed(self) -> None:
         self.host = self.host_input.text()
         self.port = self.port_input.value()
         self.update_model_list()
 
-    def on_model_changed(self, text):
+    def on_model_changed(self, text: str) -> None:
         self.model = text
 
-    def on_prompt_changed(self):
+    def on_prompt_changed(self) -> None:
         self.prompt = self.prompt_input.toPlainText()
         self.generate_response()
 
-    def update_model_list(self):
+    def update_model_list(self) -> None:
         try:
-            url = f'http://{self.host}:{self.port}/api/tags'
+            url = f"http://{self.host}:{self.port}/api/tags"
             response = requests.get(url)
             response.raise_for_status()
-            tags = response.json().get('models', [])
-            models = [tag['name'] for tag in tags]
+            tags = response.json().get("models", [])
+            models = [tag["name"] for tag in tags]
             self.model_combo.clear()
             self.model_combo.addItems(models)
             if self.model in models:
@@ -147,26 +160,26 @@ class OWOllamaRAG(widget.OWWidget):
                 self.model = models[0]
         except Exception:
             self.model_combo.clear()
-            self.model_combo.addItem('Error fetching models')
+            self.model_combo.addItem("Error fetching models")
 
     @Inputs.data
-    def set_data(self, data):
+    def set_data(self, data: Corpus | None) -> None:
         self.corpus = data
         self.generate_response()
 
-    def stop_worker(self):
+    def stop_worker(self) -> None:
         if self.worker and self.worker.isRunning():
             self.worker.cancel()
             self.worker.wait()
 
-    def generate_response(self):
+    def generate_response(self) -> None:
         if not self.corpus or not self.model or (not self.prompt):
             return
         self.stop_worker()
-        self.error_box.setPlainText(_tr.m[0, ''])
+        self.error_box.setPlainText(_tr.m[0, ""])
         self.host = self.host_input.text()
         self.port = self.port_input.value()
-        references = '\n\n'.join(self.corpus.documents)
+        references = "\n\n".join(self.corpus.documents)
         self.worker = OllamaWorker(self.host, self.port, self.model, self.prompt, references)
         self.output_display.clear()
         self.stop_button.setEnabled(True)
@@ -176,20 +189,33 @@ class OWOllamaRAG(widget.OWWidget):
         self.worker.start()
         self.save_ollama_config()
 
-    def save_ollama_config(self):
+    def save_ollama_config(self) -> None:
         self.host = self.host_input.text()
         self.port = self.port_input.value()
         self.model = self.model_combo.currentText()
 
-    def send_output(self, result):
+    def send_output(self, result: str) -> None:
         self.stop_button.setEnabled(False)
-        self.error_box.setPlainText(_tr.m[0, ''])
-        domain = Domain([], metas=[StringVariable('prompt'), StringVariable('model'), StringVariable('references'), StringVariable('output')])
-        metas = [[self.prompt, self.model, '\n\n'.join(self.corpus.documents), result]]
+        self.error_box.setPlainText(_tr.m[0, ""])
+        if self.corpus is None:
+            return
+        domain = Domain(
+            [],
+            metas=[
+                StringVariable("prompt"),
+                StringVariable("model"),
+                StringVariable("references"),
+                StringVariable("output"),
+            ],
+        )
+        metas = [[self.prompt, self.model, "\n\n".join(self.corpus.documents), result]]
         metas_array = np.array(metas, dtype=object)
         table = Table.from_numpy(domain, X=np.empty((1, 0)), metas=metas_array)
         new_corpus = Corpus.from_table(domain, table)
         self.Outputs.data.send(new_corpus)
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     from Orange.widgets.utils.widgetpreview import WidgetPreview
-    WidgetPreview(OWOllamaRAG).run(Corpus('farming.tab'))
+
+    WidgetPreview(OWOllamaRAG).run(Corpus("farming.tab"))
