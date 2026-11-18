@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.0.10 (unreleased)
+## 0.0.10 (2026-11-17)
 
 ### Added
 - **Ollama-based Entity-Relationship Extraction** widget: extracts subject-verb-object relations with a local Ollama model using structured JSON output. Produces the same output table as the rule-based widget. Includes an editable prompt and Extract/Cancel buttons.
