@@ -96,7 +96,8 @@ The OpenAI and Gemini embedders need API keys. Enter them in Orange under **Opti
   * Analiza Sentymentu
 
 Example workflows are included in the [workflows](workflows) directory. Each widget also has a help page (the Help
-button in the widget, or the sources in [doc/widgets](doc/widgets)).
+button in the widget, or the sources in [doc/widgets](doc/widgets)). The documentation is also published at
+<https://chrislee35.github.io/orange3-nlp/>.
 
 ### Summary Widgets
 
