@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.11 (2026-11-18)
+
+### Added
+- **Text Generator** widget: sends a prompt (a template with `{text}` and `{Column}` placeholders, run once per input document) to a local language model and returns the generations as a corpus (`Prompt`, `Generated Text`, `Sample`). Backends: Ollama (raw `/api/generate`, streamed) and Hugging Face causal language models (default `gpt2`). Settings: temperature, max new tokens, top-p, optional fixed seed, and samples per prompt. Translated (new entries 98-116 appended to the i18n files, English and Japanese).
+- New `util/text_generation.py` (Qt-free backends, template rendering and output builder) and `nlp-generate.svg` icon.
+
 ## 0.0.10 (2026-11-17)
 
 ### Added

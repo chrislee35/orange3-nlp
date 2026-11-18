@@ -292,5 +292,26 @@
     ]
    }
   ]
+ ],
+ [
+  "Generation",
+  [
+   {
+    "text": "Text Generator",
+    "doc": "widgets/text-generator.md",
+    "icon": "../orangecontrib/nlp/widgets/icons/nlp-generate.svg",
+    "background": "light-green",
+    "keywords": [
+     "generate",
+     "generation",
+     "llm",
+     "ollama",
+     "gpt2",
+     "prompt",
+     "temperature",
+     "hugging face"
+    ]
+   }
+  ]
  ]
 ]

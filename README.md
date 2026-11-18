@@ -41,7 +41,7 @@ Most widgets download their models on first use and cache them locally; the firs
 | POS Tagger (Stanza, UDPipe) | The Stanza or UDPipe model for the corpus language is downloaded automatically. |
 | Summary widgets (BART, Pegasus, T5, FLAN-T5), Question Answering, E5, SBERT | Hugging Face models are downloaded automatically. |
 | FastText Embedder | The Common Crawl vectors for the corpus language are downloaded to Orange's data directory. These files are very large (several GB). |
-| Ollama options (Abstractive/Extractive Summary, NER, Ollama RAG, Nomic Embedder, Ollama-based Entity-Relationship Extraction) | A running [Ollama](https://ollama.com) server (default `localhost:11434`) with the model you want to use already pulled. The Nomic Embedder needs `nomic-embed-text`. |
+| Ollama options (Abstractive/Extractive Summary, NER, Ollama RAG, Text Generator, Nomic Embedder, Ollama-based Entity-Relationship Extraction) | A running [Ollama](https://ollama.com) server (default `localhost:11434`) with the model you want to use already pulled. The Nomic Embedder needs `nomic-embed-text`. |
 | OpenAI Embedder, Gemini Embedder | An API key, see [API keys](#api-keys). |
 
 ### API keys
@@ -64,6 +64,7 @@ The OpenAI and Gemini embedders need API keys. Enter them in Orange under **Opti
   * Question Answering
   * Reference Library
   * Ollama RAG
+  * Text Generator
 
 ![Text Splitting Widgets](imgs/nlp-text-splitting.png)
 
@@ -225,6 +226,14 @@ The **Ollama RAG** widget sends the retrieved excerpts, together with your promp
 streamed response.
 
 ![Ollama RAG Widget: Using the phi Ollama model, and a prompt of "Who were the Munchins and what are they good at?"](imgs/nlp-ollama-rag.png)
+
+### Text Generation
+
+The **Text Generator** widget sends a prompt to a language model and returns what the model writes next, one row per
+generation. The prompt is a template: with a corpus connected it runs once per document, filling in `{text}` and
+`{ColumnName}`. Choose **Ollama** (raw `/api/generate`, streamed) or a **Hugging Face** causal model (default `gpt2`,
+downloaded on first use). Temperature, maximum length, top-p, an optional fixed seed and the number of samples per
+prompt are adjustable, which makes it a good tool for seeing how much a language model's output depends on chance.
 
 ### Polish Sentiment Analysis
 
