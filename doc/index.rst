@@ -3,7 +3,7 @@ Welcome to Orange3 NLP documentation!
 
 Widgets for Natural Language Processing in `Orange <https://orangedatamining.com>`_: summarization, named entity
 recognition, entity-relationship extraction, part-of-speech tagging, question answering, text splitting, text
-embeddings, retrieval-augmented generation and Polish sentiment analysis.
+embeddings, retrieval-augmented generation, text generation and Polish sentiment analysis.
 
 Install the add-on from Orange's *Add-ons* dialog (search for ``orange3-nlp``) or with ``pip install orange3-nlp``.
 See the `README <https://github.com/chrislee35/orange3-nlp#readme>`_ for the models and services each widget needs.
@@ -38,6 +38,7 @@ Widgets
    widgets/train-doc2vec
    widgets/reference-library
    widgets/ollama-rag
+   widgets/text-generator
 
 Indices and tables
 ==================
