@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- **Abstractive Summary**, Pegasus: texts longer than the model's 512-token limit (a few hundred words, well below the 3000-character cut-off) failed with `Error: index out of range in self`. The input is now also truncated by tokens, and `no_repeat_ngram_size=3` stops the summary from repeating a sentence.
+
 ## 0.0.13 (2026-11-20)
 
 ### Fixed

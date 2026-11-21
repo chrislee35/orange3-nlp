@@ -81,11 +81,15 @@ class PegasusWorker(SummaryWorker):
                     results.append(text)
                 else:
                     short_text = truncate_at_sentence(text, MAX_CHARS)
+                    # Pegasus accepts at most 512 tokens, which 3000 characters can exceed, so truncate by
+                    # tokens as well. no_repeat_ngram_size stops it from repeating a sentence.
                     summary: Any = summarizer(
                         short_text,
                         max_length=SUMMARY_LENGTH,
                         min_length=20,
                         do_sample=False,
+                        truncation=True,
+                        no_repeat_ngram_size=3,
                     )
                     results.append(summary[0]["summary_text"])
             except Exception as e:
