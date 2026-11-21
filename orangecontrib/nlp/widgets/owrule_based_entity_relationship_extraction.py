@@ -88,22 +88,10 @@ class RuleBasedEntityRelationshipExtractionWorker(QThread):
 
                 # Passive agent: "influenced by temperature"
                 for prep in token.children:
-                    if prep.dep_ == "prep" and prep.text.lower() == "by":
+                    if prep.dep_ in ("prep", "agent") and prep.text.lower() == "by":
                         for pobj in prep.children:
                             if pobj.dep_ == "pobj":
                                 subjects.append(expand_span(pobj))
-                                verb_lemma = token.lemma_.lower()
-                                if objects:
-                                    for obj in objects:
-                                        results.append(
-                                            (
-                                                chunk_id,
-                                                subjects[-1],
-                                                verb_lemma,
-                                                obj,
-                                                sent.text,
-                                            )
-                                        )
 
                 # Prepositional verb relations (migrate_to, linked_to)
                 for prep in token.children:
