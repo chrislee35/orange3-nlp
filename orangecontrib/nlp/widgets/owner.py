@@ -18,6 +18,7 @@ import requests
 
 from orangecanvas.localization import Translator
 from orangecontrib.nlp.util.qt_helpers import layout_of
+from orangecontrib.nlp.util.spacy_downloader import SpaCyDownloader
 from orangecontrib.nlp.util.typed_settings import setting
 
 _tr = Translator("orangecontrib.nlp", "biolab.si", "Orange")
@@ -70,7 +71,11 @@ class SpacyWorker(NERWorker):
     def run(self) -> None:
         import spacy
 
-        nlp = spacy.load("en_core_web_sm")
+        try:
+            nlp = SpaCyDownloader.load("en_core_web_sm")
+        except OSError as e:
+            self.result.emit([f"Error: {e}" for _ in self.texts])
+            return
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:

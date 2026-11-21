@@ -33,11 +33,7 @@ class RuleBasedEntityRelationshipExtractionWorker(QThread):
             self._thread_local.model = {}
         if language not in self._thread_local.model:
             model_name = SpaCyDownloader.require_model_name(language)
-            try:
-                self._thread_local.model[language] = spacy.load(model_name)
-            except Exception:
-                SpaCyDownloader.download(model_name)
-                self._thread_local.model[language] = spacy.load(model_name)
+            self._thread_local.model[language] = SpaCyDownloader.load(model_name)
         return self._thread_local.model[language]
 
     def extract_svo(self, nlp: Any, chunk_id: int, text: str) -> list[tuple[int, str, str, str, str]]:

@@ -41,12 +41,10 @@ class SpaCyPOSWorker(POSWorker):
 
         model_name = SpaCyDownloader.require_model_name(self.language)
         try:
-            nlp = spacy.load(model_name)
-        except OSError:
-            if not SpaCyDownloader.download(model_name):
-                self.result.emit([json.dumps({"error": f"spaCy model for '{self.language}' not found."}) for _ in self.texts])
-                return
-            nlp = spacy.load(model_name)
+            nlp = SpaCyDownloader.load(model_name)
+        except OSError as e:
+            self.result.emit([json.dumps({"error": str(e)}) for _ in self.texts])
+            return
         results = []
         for i, text in enumerate(self.texts):
             if self._is_cancelled:

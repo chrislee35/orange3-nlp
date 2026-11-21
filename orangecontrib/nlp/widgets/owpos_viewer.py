@@ -96,12 +96,10 @@ class OWPOSViewer(widget.OWWidget):
             return
         model_name = SpaCyDownloader.require_model_name(self.corpus.language)
         try:
-            nlp = spacy.load(model_name)
+            nlp = SpaCyDownloader.load(model_name)
         except OSError:
-            if not SpaCyDownloader.download(model_name):
-                self.webview.setHtml(_tr.m[84, f"<h3>spaCy {self.corpus.language} model not found.</h3>"])
-                return
-            nlp = spacy.load(model_name)
+            self.webview.setHtml(_tr.m[84, f"<h3>spaCy {self.corpus.language} model not found.</h3>"])
+            return
         pos_column = None
         for m in self.corpus.domain.metas:
             if m.name == "POS Tags":

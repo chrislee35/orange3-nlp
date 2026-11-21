@@ -7,6 +7,13 @@
 - **POS Tagger**, UDPipe: the root word's head was stored as minus its position instead of 0, so *POS Viewer* drew a spurious arc from the root to the first word of every sentence. It is now 0, as with spaCy and Stanza.
 - **Abstractive Summary**, Pegasus: texts longer than the model's 512-token limit (a few hundred words, well below the 3000-character cut-off) failed with `Error: index out of range in self`. The input is now also truncated by tokens, and `no_repeat_ngram_size=3` stops the summary from repeating a sentence.
 
+## 0.0.14 (2026-11-21)
+
+### Fixed
+- **spaCy models are now downloaded without pip or admin rights** (issue #3). Previously `SpaCyDownloader` ran `pip install` into Orange's own environment, which fails when Orange is installed for all users (`C:\Program Files`) or into a read-only/externally-managed Python, and **Named Entity Recognition** (spaCy) did not try to download at all (`OSError: [E050] Can't find model 'en_core_web_sm'`). The new `SpaCyDownloader.load()` tries an installed model, then a per-user copy, then downloads the matching model wheel from the spacy-models GitHub release and unpacks it into a per-user data folder (`platformdirs`; e.g. `%LOCALAPPDATA%\orange3-nlp\spacy-models` on Windows). If that fails (e.g. offline) the widget shows an error naming the model and the folder to unpack it into.
+- Named Entity Recognition, POS Tagger, POS Viewer, the spaCy embedder and Rule-based Entity Relationship Extraction all use `SpaCyDownloader.load()`.
+- Added `platformdirs` and `requests` as explicit dependencies.
+
 ## 0.0.13 (2026-11-20)
 
 ### Fixed
