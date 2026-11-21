@@ -264,7 +264,9 @@ class OWNERWidget(widget.OWWidget):
             self.infoLabel.setText(_tr.m[36, "No text attribute found."])
             self.Outputs.data.send(None)
             return
-        texts = self.corpus.documents
+        # The text after the transformation stages of Preprocess Text (lowercase, accent, HTML, URL removal);
+        # equals the raw documents when the corpus was not preprocessed.
+        texts = list(self.corpus.pp_documents)
         framework = self.selected_framework
         if framework == "NLTK":
             self.worker = NLTKWorker(texts)

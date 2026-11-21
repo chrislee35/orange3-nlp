@@ -1,9 +1,14 @@
 # Changelog
 
+## 0.0.12 (2026-11-20)
+
+### Changed
+- **Named Entity Recognition** now reads the text produced by *Preprocess Text*'s transformation stages (lowercase, remove accents, parse HTML, remove URLs) instead of always using the raw documents. Without a preceding *Preprocess Text* nothing changes. Tokenization, normalization and filtering stages do not affect it. Note that the default *Lowercase* transformation lowers recognition quality, so untick it for NER.
+
 ## 0.0.11 (2026-11-18)
 
 ### Added
-- **Text Generator** widget: sends a prompt (a template with `{text}` and `{Column}` placeholders, run once per input document) to a local language model and returns the generations as a corpus (`Prompt`, `Generated Text`, `Sample`). Backends: Ollama (raw `/api/generate`, streamed) and Hugging Face causal language models (default `gpt2`). Settings: temperature, max new tokens, top-p, optional fixed seed, and samples per prompt. Translated (new entries 98-116 appended to the i18n files, English and Japanese).
+- **Text Generator** widget: sends a prompt (a template with `{text}` and `{Column}` placeholders, run once per input document) to a local language model and returns the generations as a corpus (`Prompt`, `Generated Text`, `Sample`). Backends: Ollama (`/api/generate`, streamed; the model's own prompt template is applied) and Hugging Face causal language models (default `gpt2`). Settings: temperature, max new tokens, top-p, optional fixed seed, and samples per prompt. Translated (new entries 98-116 appended to the i18n files, English and Japanese).
 - New `util/text_generation.py` (Qt-free backends, template rendering and output builder) and `nlp-generate.svg` icon.
 
 ## 0.0.10 (2026-11-17)

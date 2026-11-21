@@ -13,6 +13,8 @@ Uses selected NER framework to extract named entities.
 Named Entity Recognition (NER) locates and classifies named entities in text into categories such as **PERSON**,
 **ORG** (organizations), **GPE** (countries, cities and other locations), **DATE**, **TIME** and **MONEY**.
 
+The widget reads the text left by the transformation stages of a preceding *Preprocess Text* widget (lowercase, remove accents, parse HTML, remove URLs); the tokenization, normalization and filtering stages have no effect. Entity recognition relies on capital letters, so if you use *Preprocess Text* before this widget, untick **Lowercase**. Without *Preprocess Text* the raw document text is used.
+
 Choose a framework with the radio buttons:
 
 - **NLTK**

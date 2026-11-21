@@ -10,12 +10,12 @@ Generate text from a prompt with a local language model.
 
 - Corpus: one row per generation, with the input columns plus `Prompt`, `Generated Text` and `Sample`
 
-The widget sends a prompt to a language model and returns what the model writes next. The model *continues* the text it is given (raw completion, with no chat template), so a prompt such as `The capital of France is` is answered with a continuation, not a conversation. Use it to see how prompts, temperature and chance change what a model writes.
+The widget sends a prompt to a language model and returns what the model writes. What happens next depends on the kind of model. A **base model** (such as `gpt2`) simply *continues* the text, so `The capital of France is` is followed by more text about France. An **instruction-tuned model** (such as `phi4-mini` in Ollama) treats the prompt as a request and answers it. Use the widget to see how prompts, temperature and chance change what a model writes.
 
 **Backends**
 
-- **Ollama**: a model running on a local Ollama server. Set the **Host** (default `localhost`), **Port** (default `11434`) and **Model**. The model list is read from the server and the box stays editable if the server is not reachable. The model must already be pulled (`ollama pull <model>`). The request is sent to `/api/generate` and the text streams into the output pane.
-- **Hugging Face**: a small causal language model that runs in Python through `transformers`. The default is `gpt2`, which is downloaded the first time it is used (about 0.5 GB) and kept in memory afterwards. Type any other causal-language-model name, such as `distilgpt2`. These base models do not follow instructions; they only continue text.
+- **Ollama**: a model running on a local Ollama server. Set the **Host** (default `localhost`), **Port** (default `11434`) and **Model**. The model list is read from the server and the box stays editable if the server is not reachable. The model must already be pulled (`ollama pull <model>`). The request is sent to Ollama's `/api/generate` endpoint, which applies the model's own prompt template, so instruction-tuned models answer instead of continuing. The text streams into the output pane.
+- **Hugging Face**: a small causal language model that runs in Python through `transformers`. The default is `gpt2`, which is downloaded the first time it is used (about 0.5 GB) and kept in memory afterwards. Type any other causal-language-model name, such as `distilgpt2`. `gpt2` and `distilgpt2` are base models: they do not follow instructions, they only continue text.
 
 **Prompt template**
 

@@ -231,8 +231,7 @@ streamed response.
 
 The **Text Generator** widget sends a prompt to a language model and returns what the model writes next, one row per
 generation. The prompt is a template: with a corpus connected it runs once per document, filling in `{text}` and
-`{ColumnName}`. Choose **Ollama** (raw `/api/generate`, streamed) or a **Hugging Face** causal model (default `gpt2`,
-downloaded on first use). Temperature, maximum length, top-p, an optional fixed seed and the number of samples per
+`{ColumnName}`. Choose **Ollama** (`/api/generate`, streamed; instruction-tuned models answer the prompt) or a **Hugging Face** causal model (a base model that continues the prompt) (default `gpt2`, downloaded on first use). Temperature, maximum length, top-p, an optional fixed seed and the number of samples per
 prompt are adjustable, which makes it a good tool for seeing how much a language model's output depends on chance.
 
 ### Polish Sentiment Analysis
