@@ -20,8 +20,7 @@ Choose a framework with the radio buttons:
 - **NLTK**
 - **spaCy** (`en_core_web_sm`)
 - **Flair**
-- **Ollama**. The model is asked to return a JSON list of entities, so results depend on the model following that
-  format; documents it cannot parse are reported as `Error: ...`.
+- **Ollama**. The model is asked, with Ollama's `format: json` option and temperature 0, to return a JSON list of entities labeled PERSON, ORG, GPE, DATE, MONEY or OTHER. Small models label less reliably than spaCy, NLTK or Flair, and are much slower; a model of about 8 billion parameters (for example `llama3.1:8b`) is a sensible minimum. Documents the reply cannot be parsed for are reported as `Error: ...`.
 
 Each entity is written to the *Named Entities* column as `text (LABEL)`, separated by commas.
 

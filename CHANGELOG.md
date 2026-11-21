@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.0.13 (2026-11-20)
+
+### Fixed
+- **Named Entity Recognition**, Ollama backend: the request now sets `"format": "json"` and `temperature` 0, and the prompt asks for a JSON object `{"entities": [...]}` with the labels PERSON, ORG, GPE, DATE, MONEY, OTHER. Previously models such as phi4-mini wrapped the answer in a markdown code fence and every document failed with `Error: Expecting value`. The parser accepts either the object or a bare array. The fallback model name is `llama3.1:8b` (it was `phi`).
+
 ## 0.0.12 (2026-11-20)
 
 ### Changed

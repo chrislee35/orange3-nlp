@@ -107,9 +107,28 @@ class FlairWorker(NERWorker):
         self.result.emit(results)
 
 
+OLLAMA_PROMPT = (
+    "Extract the named entities (people, organizations, locations, dates, money amounts) from the text. "
+    "Use the labels PERSON, ORG, GPE, DATE, MONEY, or OTHER. Only include entities that appear in the text. "
+    "Return a JSON object with a single key 'entities': an array of objects with 'text' and 'label' keys.\n"
+    "\nText: {text}\n"
+)
+
+
+def parse_entities(content: str) -> str:
+    """Turn the JSON an Ollama model returned into 'text (LABEL), ...'.
+
+    Accepts the requested object ``{"entities": [...]}`` or a bare array of ``{"text", "label"}`` objects.
+    """
+    data = json.loads(content)
+    if isinstance(data, dict):
+        data = next((v for v in data.values() if isinstance(v, list)), [])
+    return ", ".join(f"{e['text']} ({e['label']})" for e in data)
+
+
 class OllamaWorker(NERWorker):
 
-    def __init__(self, texts: list[str], host: str = "localhost", port: str | int = "11434", model_name: str = "phi") -> None:
+    def __init__(self, texts: list[str], host: str = "localhost", port: str | int = "11434", model_name: str = "llama3.1:8b") -> None:
         super().__init__(texts)
         self.host = host
         self.port = port
@@ -123,25 +142,20 @@ class OllamaWorker(NERWorker):
             if not text:
                 results.append("")
             else:
-                prompt = (
-                    f"Extract named entities from the following text. Return a JSON array of objects with 'text' and 'label' keys.\n"
-                    f"\nText: {text}\n"
-                )
                 try:
                     response = requests.post(
                         f"http://{self.host}:{self.port}/api/generate",
                         json={
                             "model": self.model_name,
-                            "prompt": prompt,
+                            "prompt": OLLAMA_PROMPT.format(text=text),
                             "stream": False,
+                            "format": "json",
+                            "options": {"temperature": 0},
                         },
                         headers={"Content-Type": "application/json"},
                         timeout=300,
                     )
-                    content = response.json().get("response", "")
-                    entities = json.loads(content)
-                    formatted = ", ".join((f"{e['text']} ({e['label']})" for e in entities))
-                    results.append(formatted)
+                    results.append(parse_entities(response.json().get("response", "")))
                 except Exception as e:
                     results.append(f"Error: {e}")
             self.progress.emit(int((i + 1) / len(self.texts) * 100))
