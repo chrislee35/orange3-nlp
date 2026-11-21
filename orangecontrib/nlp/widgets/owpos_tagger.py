@@ -134,7 +134,7 @@ class UDPipePOSWorker(POSWorker):
                         "pos": cols[3],
                         "tag": cols[4],
                         "dep": cols[7],
-                        "head": int(cols[6]) - int(cols[0]),
+                        "head": int(cols[6]) - int(cols[0]) if int(cols[6]) != 0 else 0,
                     }
                 )
             results.append(json.dumps(token_data))
