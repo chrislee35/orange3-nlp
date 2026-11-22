@@ -318,6 +318,7 @@ class OWAbstractiveSummary(widget.OWWidget):
 
     @Inputs.data
     def set_data(self, data: Corpus | None) -> None:
+        self.discard_running_work()
         self.corpus = data
         if self.corpus is not None:
             self.infoLabel.setText(_tr.m[85, f"Received {len(self.corpus)} documents."])
@@ -368,8 +369,15 @@ class OWAbstractiveSummary(widget.OWWidget):
     def update_progress(self, value: int) -> None:
         self.progressBarSet(value)
 
+    def discard_running_work(self) -> None:
+        """Stop the current run, and ignore a result it may already have queued, because it belongs to the old input."""
+        self.cancel_processing()
+        self.worker = None
+
     def process_result(self, summary_list: list[str]) -> None:
-        if self.corpus is None:
+        if self.corpus is None or self.sender() is not self.worker:
+            return
+        if len(summary_list) != len(self.corpus):
             return
         summary_var = StringVariable("Abstractive Summary")
         new_data = self.corpus.add_column(summary_var, summary_list, to_metas=True)

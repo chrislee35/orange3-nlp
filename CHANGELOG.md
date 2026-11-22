@@ -6,6 +6,7 @@
 - **Extractive Summary** and **Abstractive Summary**: an **Apply** button and an **Apply automatically** checkbox (on by default, as before). Summarizers are slow and neural ones reload their model each time, so untick it while you are still changing the input or the framework, then press **Apply**.
 
 ### Fixed
+- **Extractive Summary** and **Abstractive Summary**: new input while a summary was still running, or one that had just finished, could attach the old summaries to the new corpus and fail with `ValueError: could not broadcast input array from shape (12,) into shape (1,)`. New input now stops the old run, and results that do not belong to the current run are ignored.
 - **Rule-based Entity-Relationship Extraction**: passive sentences (*The cat was chased by the dog*) produced no relation, because spaCy labels the *by* of a passive agent `agent`, and only `prep` was checked. They now give (the dog, chase, the cat).
 - **POS Tagger**, UDPipe: the root word's head was stored as minus its position instead of 0, so *POS Viewer* drew a spurious arc from the root to the first word of every sentence. It is now 0, as with spaCy and Stanza.
 - **Abstractive Summary**, Pegasus: texts longer than the model's 512-token limit (a few hundred words, well below the 3000-character cut-off) failed with `Error: index out of range in self`. The input is now also truncated by tokens, and `no_repeat_ngram_size=3` stops the summary from repeating a sentence.

@@ -21,8 +21,10 @@ def make_stub(cls: type, auto_apply: bool) -> SimpleNamespace:
         start_processing=mock.Mock(),
         cancel_processing=mock.Mock(),
         Outputs=SimpleNamespace(data=mock.Mock()),
+        progressBarFinished=mock.Mock(),
     )
     stub.auto_apply_changed = lambda: cls.auto_apply_changed(stub)
+    stub.discard_running_work = lambda: cls.discard_running_work(stub)
     return stub
 
 
@@ -67,6 +69,31 @@ class TestSummaryApply(unittest.TestCase):
             stub = make_stub(cls, True)
             stub.set_data(corpus)
             stub.start_processing.assert_called_once()
+
+    def test_new_input_drops_the_old_worker(self) -> None:
+        for cls in (OWExtractiveSummary, OWAbstractiveSummary):
+            stub = make_stub(cls, False)
+            stub.worker = mock.Mock()
+            stub.set_data(mock.MagicMock())
+            stub.cancel_processing.assert_called_once()
+            self.assertIsNone(stub.worker)
+
+    def test_stale_result_is_ignored(self) -> None:
+        for cls in (OWExtractiveSummary, OWAbstractiveSummary):
+            corpus = mock.MagicMock()
+            corpus.__len__.return_value = 1
+            stub = make_stub(cls, True)
+            stub.corpus = corpus
+            stub.worker = mock.Mock()
+            stub.sender = lambda: mock.Mock()  # a result from some earlier worker
+            cls.process_result(stub, ["a"])
+            corpus.add_column.assert_not_called()
+            stub.sender = lambda: stub.worker
+            cls.process_result(stub, ["a", "b", "c"])  # wrong length: would raise in add_column
+            corpus.add_column.assert_not_called()
+            cls.process_result(stub, ["a"])
+            corpus.add_column.assert_called_once()
+            stub.Outputs.data.send.assert_called_once()
 
 
 if __name__ == "__main__":
