@@ -1,6 +1,9 @@
 # Changelog
 
-## Unreleased
+## 0.0.15 (2026-11-22)
+
+### Added
+- **Extractive Summary** and **Abstractive Summary**: an **Apply** button and an **Apply automatically** checkbox (on by default, as before). Summarizers are slow and neural ones reload their model each time, so untick it while you are still changing the input or the framework, then press **Apply**.
 
 ### Fixed
 - **Rule-based Entity-Relationship Extraction**: passive sentences (*The cat was chased by the dog*) produced no relation, because spaCy labels the *by* of a passive agent `agent`, and only `prep` was checked. They now give (the dog, chase, the cat).

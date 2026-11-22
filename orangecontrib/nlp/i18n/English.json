@@ -115,5 +115,10 @@
   "Unknown placeholder(s): {}",
   "Enter a prompt.",
   "Choose a model.",
-  "Generated {n} texts."
+  "Generated {n} texts.",
+  "Apply",
+  "Apply automatically",
+  "Summarize again whenever the input or the framework changes.",
+  "Press Apply to summarize.",
+  "Received {n} documents. Press Apply to summarize."
 ]

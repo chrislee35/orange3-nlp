@@ -11,7 +11,7 @@ from AnyQt.QtWidgets import (
     QWidget,
 )
 from AnyQt.QtCore import QThread, pyqtSignal, Qt
-from Orange.widgets import widget
+from Orange.widgets import gui, widget
 from Orange.widgets.widget import Input, Output
 from Orange.data import StringVariable
 from orangecontrib.text.corpus import Corpus
@@ -152,6 +152,7 @@ class OWExtractiveSummary(widget.OWWidget):
     ollama_host = setting("localhost")
     ollama_port = setting("11434")
     selected_model = setting("")
+    auto_apply = setting(True)
 
     def __init__(self) -> None:
         super().__init__()
@@ -170,6 +171,19 @@ class OWExtractiveSummary(widget.OWWidget):
             a(btn)
             self.framework_buttons.addButton(btn, i)
         self.framework_buttons.buttonClicked[int].connect(self.select_framework)
+        self.apply_button = QPushButton(_tr.m[117, "Apply"], self)
+        self.apply_button.clicked.connect(self.start_processing)
+        a(self.apply_button)
+        a(
+            gui.checkBox(
+                None,
+                self,
+                "auto_apply",
+                _tr.m[118, "Apply automatically"],
+                tooltip=_tr.m[119, "Summarize again whenever the input or the framework changes."],
+                callback=self.auto_apply_changed,
+            )
+        )
         self.cancel_button = QPushButton(_tr.m[9, "Cancel"], self)
         self.cancel_button.clicked.connect(self.cancel_processing)
         a(self.cancel_button)
@@ -222,6 +236,13 @@ class OWExtractiveSummary(widget.OWWidget):
         self.selected_framework = self.frameworks[index]
         self.ollama_panel.setVisible(self.selected_framework == "Ollama")
         if self.corpus is not None:
+            if self.auto_apply:
+                self.start_processing()
+            else:
+                self.infoLabel.setText(_tr.m[120, "Press Apply to summarize."])
+
+    def auto_apply_changed(self) -> None:
+        if self.auto_apply and self.corpus is not None:
             self.start_processing()
 
     def cancel_processing(self) -> None:
@@ -236,7 +257,10 @@ class OWExtractiveSummary(widget.OWWidget):
         self.corpus = data
         if self.corpus is not None:
             self.infoLabel.setText(_tr.m[85, f"Received {len(self.corpus)} documents."])
-            self.start_processing()
+            if self.auto_apply:
+                self.start_processing()
+            else:
+                self.infoLabel.setText(_tr.m[121, "Received {n} documents. Press Apply to summarize."].format(n=len(self.corpus)))
         else:
             self.infoLabel.setText(_tr.m[33, "No data on input yet."])
             self.Outputs.data.send(None)
