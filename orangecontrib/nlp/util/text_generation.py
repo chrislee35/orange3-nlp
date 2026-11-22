@@ -67,7 +67,7 @@ def render_prompt(template: str, values: Mapping[str, str]) -> tuple[str, list[s
 
 
 class OllamaGenerator:
-    """Raw ``/api/generate`` completion (no chat template), streamed."""
+    """``/api/generate`` completion, streamed. Ollama applies the model's own prompt template (``raw`` is not set)."""
 
     def __init__(self, host: str, port: str | int, model: str, timeout: float = 120) -> None:
         self.url = f"http://{host}:{port}/api/generate"

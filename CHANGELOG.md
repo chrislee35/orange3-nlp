@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+- Documentation: a code comment on the **Text Generator** Ollama backend said it sends a raw completion. It does not: Ollama applies the model's own prompt template (the widget documentation already said so).
+- Documentation: **Extractive Summary** and **Abstractive Summary** describe the **Apply** button and the **Apply automatically** checkbox. **Extractive Summary** now says that only Sumy and Summa are extractive (BART and Ollama write new text), and **Text Generator** says that one generator cannot be connected to another, because their output columns collide.
+
 ## 0.0.15 (2026-11-22)
 
 ### Added

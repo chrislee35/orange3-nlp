@@ -104,8 +104,10 @@ button in the widget, or the sources in [doc/widgets](doc/widgets)). The documen
 
 Both summary widgets take a **Corpus** and output a **Corpus with Summaries**. Choose the framework with the radio
 buttons; the *Ollama* option reveals host, port and model settings.
+The widgets summarize as soon as a corpus arrives. Untick **Apply automatically** to wait for the **Apply** button instead,
+which is useful while you are still changing the input, because summarizing is slow.
 
-- **Extractive Summary** (Sumy, Summa, BART, Ollama): Selects and joins key sentences or phrases from the original text.
+- **Extractive Summary** (Sumy, Summa, BART, Ollama): Sumy and Summa select and join key sentences from the original text. The BART and Ollama options write new text.
 
 ![Extractive Summary of The Little Match-Seller](imgs/extractive-summary.png)
 

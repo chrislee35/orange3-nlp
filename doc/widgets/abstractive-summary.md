@@ -25,6 +25,11 @@ boundary before summarizing, and documents that are already shorter than the sum
 unchanged. A document that fails is reported as `Error: ...` in its summary cell and does not stop the rest.
 Press **Cancel** to stop a running job.
 
+By default the widget summarizes as soon as a corpus arrives and whenever you choose another framework. Summarizing is slow,
+and the neural models are reloaded for every run, so untick **Apply automatically** while you are still changing the
+input or the framework. The widget then waits until you press **Apply**. Ticking the box again runs any pending change.
+Sending new input stops a run that is still going.
+
 **Ollama settings.** Selecting *Ollama* shows the server **Host** (default `localhost`), **Port** (default `11434`) and
 **Model**. The model list is read from the server; change the host or port and the list refreshes. The model must already
 be pulled on the server (`ollama pull <model>`).

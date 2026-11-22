@@ -37,3 +37,5 @@ A `{name}` that matches no column is left as written, and the widget shows a war
 **Output**
 
 Each output row holds the input row's columns (if any), the rendered `Prompt`, the `Generated Text` and the `Sample` number (starting at 1). `Generated Text` is the output corpus's text feature, so it can go straight into *Text Embedder*, *Preprocess Text* or *Corpus Viewer*. A generation that fails is reported as `Error: ...` in its row and does not stop the others.
+
+Because every output has the same `Prompt`, `Generated Text` and `Sample` columns, you cannot connect one *Text Generator* to the input of another: Orange rejects the duplicate column names. To run several prompts on the same documents, connect the *Corpus* to one *Text Generator* for each prompt.
